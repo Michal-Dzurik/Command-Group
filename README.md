@@ -20,6 +20,18 @@ cg add group <group-name>
 cg -ag <group-name>
 ```
 
+### Listing Groups
+List groups with the following syntax:
+
+```bash
+cg add list groups
+```
+
+**Alias:**
+```bash
+cg -lg
+```
+
 ### Removing a Group
 Delete an existing command group:
 

@@ -172,3 +172,58 @@ int db_remove_group(const char *group) {
 
     return rc == SQLITE_DONE || rc == SQLITE_OK;
 }
+
+char **db_get_group_list(int *out_count) {
+    sqlite3_stmt *stmt;
+    int count = 0;
+
+    const char *sql_count = "SELECT COUNT(1) FROM groups;";
+    if (sqlite3_prepare_v2(db, sql_count, -1, &stmt, NULL) != SQLITE_OK)
+        return NULL;
+
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        count = sqlite3_column_int(stmt, 0);
+    } else {
+        sqlite3_finalize(stmt);
+        return NULL;
+    }
+    sqlite3_finalize(stmt);
+
+    if (count == 0) {
+        *out_count = 0;
+        return NULL;
+    }
+
+    char **group_list = malloc(count * sizeof(char *));
+    if (!group_list) return NULL;
+
+    const char *sql_names = "SELECT group_name FROM groups;";
+    if (sqlite3_prepare_v2(db, sql_names, -1, &stmt, NULL) != SQLITE_OK) {
+        free(group_list);
+        return NULL;
+    }
+
+    int i = 0;
+    while (sqlite3_step(stmt) == SQLITE_ROW && i < count) {
+        const unsigned char *group_name = sqlite3_column_text(stmt, 0);
+        if (group_name) {
+            group_list[i] = strdup((const char *)group_name);
+            if (!group_list[i]) {
+                for (int j = 0; j < i; ++j) free(group_list[j]);
+                free(group_list);
+                sqlite3_finalize(stmt);
+                return NULL;
+            }
+            i++;
+        }
+    }
+
+    sqlite3_finalize(stmt);
+    *out_count = i;
+    return group_list;
+}
+
+void free_group_list(char **list, int count) {
+    for (int i = 0; i < count; ++i) free(list[i]);
+    free(list);
+}

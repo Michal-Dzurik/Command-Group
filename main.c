@@ -60,7 +60,16 @@ int main(int argc, char *argv[]) {
 
             return FAIL;
         }
-
+        if (strcmp(to_lower(argv[1]), "list") == 0){
+            if (argc < 3) {
+                printf("- groups\n");
+                return SUCCESS;
+            }
+            if (strcmp(to_lower(argv[2]), "groups") == 0){
+                // List groups
+                return list_groups();
+            }
+        }
         // Aliases
         if (strcmp(to_lower(argv[1]), "-ag") == 0){
             // Add group
@@ -93,6 +102,10 @@ int main(int argc, char *argv[]) {
                 return FAIL;
             }
             return remove_command(argv[2],argv[3]);
+        }
+        if (strcmp(to_lower(argv[1]), "-lg") == 0){
+            // List groups
+            return list_groups();
         }
     }
 

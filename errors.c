@@ -13,3 +13,4 @@ const char *ERROR_COMMAND_EXECUTION = "Command has failed\n";
 const char *ERROR_SQL_OPEN = "Failed to open SQLite: %s\n";
 const char *ERROR_SQL_INIT = "Failed to init SQLite: %s\n";
 const char *ERROR_SQL_COMMAND_IS_NULL = "Command is NULL\n";
+const char *ERROR_NO_GROUPS = "There are no groups recorded\n";
