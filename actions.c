@@ -64,3 +64,23 @@ int execute(char* group_name,char* command_name){
     free(command);
     return SUCCESS;
 }
+
+int list_groups(){
+    db_init(DATABASE_NAME);
+    int count = 0;
+    char **list = db_get_group_list(&count);
+    db_close();
+
+    if (list == NULL){
+        error(ERROR_NO_GROUPS);
+        return FAIL;
+    }
+
+    for (int i = 0; i < count; i++){
+        printf(" - %s\n",list[i]);
+    }
+    
+    free_group_list(list,count);
+
+    return SUCCESS;
+}

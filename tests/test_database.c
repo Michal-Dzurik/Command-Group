@@ -42,6 +42,33 @@ Test(database, remove_group) {
     cr_assert_eq(result,1);
 }
 
+Test(database, list_group_dry) {
+    int count = 0;
+    char **result = db_get_group_list(&count);
+
+    cr_assert_eq(result, NULL);
+}
+
+Test(database, list_group) {
+    db_add_group("example_group");
+    db_add_group("example_group2");
+
+    char *expected[2] = {
+        "example_group",
+        "example_group2"
+    };
+
+    int count = 0;
+    char **result = db_get_group_list(&count);
+    cr_assert_eq(count, 2);
+    
+    for (int i = 0; i < count; i++){
+        cr_assert_str_eq(result[i],expected[i]);
+    }
+    
+    free_group_list(result, count);
+}
+
 // COMMANDS
 Test(database, create_command_dry) {
     int result = db_add_command(NULL, NULL, NULL);
