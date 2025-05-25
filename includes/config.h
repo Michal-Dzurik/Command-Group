@@ -12,6 +12,6 @@
 
 #define EXECUTE_COMMAND_MIN_ARGS 3
 
-#define DATABASE_NAME "cg_database"
+#define DATABASE_NAME "gc.db"
 
 #endif

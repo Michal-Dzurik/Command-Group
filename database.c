@@ -8,9 +8,15 @@
 #include <sqlite3.h>
 
 static sqlite3 *db = NULL;
+static char *testName = NULL;
+
+// For testin only
+void db_set_test_name(char *name){
+    testName = name;
+}
 
 int db_init(const char *filename) {
-    if (sqlite3_open(filename, &db) != SQLITE_OK) {
+    if (sqlite3_open(testName == NULL ? filename : testName, &db) != SQLITE_OK) {
         error_args(ERROR_SQL_OPEN, sqlite3_errmsg(db));
         return 0;
     }
@@ -44,6 +50,7 @@ void db_close() {
 }
 
 static int get_or_create_group_id(const char *group_name) {
+    if(group_name == NULL) return 0;
     sqlite3_stmt *stmt;
     int group_id = 0;
 
@@ -75,13 +82,16 @@ static int get_or_create_group_id(const char *group_name) {
 }
 
 int db_add_group(const char *group) {
+    if (group == NULL) return -1;
+    
     int id = get_or_create_group_id(group);
     return id != 0;
 }
 
 int db_add_command(const char *group, const char *command_name, const char *command) {
+    if(group == NULL || command_name == NULL || command_name == NULL) return -1;
     int group_id = get_or_create_group_id(group);
-    if (group_id == 0) return 0;
+    if (group_id == 0) return -1;
 
     const char *sql = "INSERT INTO commands (group_id, command_name, command) VALUES (?, ?, ?);";
     sqlite3_stmt *stmt;
@@ -100,6 +110,7 @@ int db_add_command(const char *group, const char *command_name, const char *comm
 
 
 char* db_get_command(const char *group, const char *command_name) {
+    if(group == NULL || command_name == NULL) return NULL;
     int group_id = get_or_create_group_id(group);
     if (group_id == 0) return NULL;
 
@@ -125,6 +136,8 @@ char* db_get_command(const char *group, const char *command_name) {
 }
 
 int db_remove_command(const char *group, const char *command_name) {
+    if (group == NULL || command_name == NULL) return -1;
+    
     int group_id = get_or_create_group_id(group);
     if (group_id == 0) return 0;
 
@@ -144,6 +157,8 @@ int db_remove_command(const char *group, const char *command_name) {
 }
 
 int db_remove_group(const char *group) {
+    if (group == NULL) return -1;
+    
     const char *sql = "DELETE FROM groups WHERE group_name = ?;";
     sqlite3_stmt *stmt;
 

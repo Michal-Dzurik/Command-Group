@@ -3,6 +3,8 @@
 
 #include <sqlite3.h>
 
+void db_set_test_name(char *name);
+
 int db_init(const char *filename);
 void db_close(void);
 int db_add_group(const char *group);

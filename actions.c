@@ -8,7 +8,7 @@
 #include <stdlib.h>
 
 int help(){
-    printf("help");
+    printf("help\n");
     return SUCCESS;
 }
 
@@ -60,7 +60,7 @@ int execute(char* group_name,char* command_name){
         free(command);
         return FAIL;
     }
-    
+
     free(command);
     return SUCCESS;
 }
