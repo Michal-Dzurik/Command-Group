@@ -8,7 +8,7 @@
 #include <stdlib.h>
 
 int help(){
-    printf("help\n");
+    system("mdcat README.md");
     return SUCCESS;
 }
 
