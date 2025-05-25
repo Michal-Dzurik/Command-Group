@@ -62,7 +62,8 @@ cg -rc <group-name> <command-name> "<command-to-execute>"
 Run a command from a group:
 
 ```bash
-cg <group-name> <command-name不说
+cg <group-name> <command-name>
+```
 
 ## Example Usage
 
