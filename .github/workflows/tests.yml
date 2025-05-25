@@ -1,0 +1,26 @@
+name: Run C tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y build-essential libcriterion-dev sqlite3 libsqlite3-dev
+
+    - name: Build
+      run: make tests
+
+    - name: Run tests
+      run: ./test
