@@ -148,6 +148,10 @@ Test(database, list_commands_in_group_dry) {
     int count = 0;
     char **result = db_get_command_list(NULL,&count);
     cr_assert_eq(result, NULL);
+
+    db_add_group("example_group");
+    result = db_get_command_list("example_group",&count);
+    cr_assert_eq(result, NULL);
 }
 
 Test(database, list_commands_in_group) {
