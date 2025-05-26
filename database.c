@@ -223,6 +223,67 @@ char **db_get_group_list(int *out_count) {
     return group_list;
 }
 
+char **db_get_command_list(const char *group_name, int *out_count) {
+    if (group_name == NULL || out_count == NULL) return NULL;
+
+    sqlite3_stmt *stmt;
+    int count = 0;
+
+    const char *sql_count =
+        "SELECT COUNT(*) FROM commands WHERE group_id = "
+        "(SELECT id FROM groups WHERE group_name = ?);";
+
+    if (sqlite3_prepare_v2(db, sql_count, -1, &stmt, NULL) != SQLITE_OK)
+        return NULL;
+
+    sqlite3_bind_text(stmt, 1, group_name, -1, SQLITE_STATIC);
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        count = sqlite3_column_int(stmt, 0);
+    } else {
+        sqlite3_finalize(stmt);
+        return NULL;
+    }
+    sqlite3_finalize(stmt);
+
+    if (count == 0) {
+        *out_count = 0;
+        return NULL;
+    }
+
+    char **command_list = malloc(count * sizeof(char *));
+    if (!command_list) return NULL;
+
+    const char *sql =
+        "SELECT command_name FROM commands WHERE group_id = "
+        "(SELECT id FROM groups WHERE group_name = ?);";
+
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
+        free(command_list);
+        return NULL;
+    }
+
+    sqlite3_bind_text(stmt, 1, group_name, -1, SQLITE_STATIC);
+    int i = 0;
+
+    while (sqlite3_step(stmt) == SQLITE_ROW && i < count) {
+        const unsigned char *cmd = sqlite3_column_text(stmt, 0);
+        if (cmd) {
+            command_list[i] = strdup((const char *)cmd);
+            if (!command_list[i]) {
+                for (int j = 0; j < i; ++j) free(command_list[j]);
+                free(command_list);
+                sqlite3_finalize(stmt);
+                return NULL;
+            }
+            i++;
+        }
+    }
+
+    sqlite3_finalize(stmt);
+    *out_count = i;
+    return command_list;
+}
+
 void free_group_list(char **list, int count) {
     for (int i = 0; i < count; ++i) free(list[i]);
     free(list);

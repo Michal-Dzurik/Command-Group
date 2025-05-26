@@ -62,12 +62,18 @@ int main(int argc, char *argv[]) {
         }
         if (strcmp(to_lower(argv[1]), "list") == 0){
             if (argc < 3) {
-                printf("- groups\n");
+                printf("- groups\n- commands\n");
                 return SUCCESS;
             }
             if (strcmp(to_lower(argv[2]), "groups") == 0){
                 // List groups
                 return list_groups();
+            }
+            if (strcmp(to_lower(argv[2]), "commands") == 0){
+                if (argc > 3){
+                    // List commands in group
+                    return list_commands_by_group(argv[3]);
+                }
             }
         }
         // Aliases
