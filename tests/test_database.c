@@ -143,3 +143,32 @@ Test(database, remove_group_and_commands) {
     cr_assert_eq(db_get_command("example_group","example_command2"),NULL);
     cr_assert_eq(db_get_command("example_group","example_command3"),NULL);
 }
+
+Test(database, list_commands_in_group_dry) {
+    int count = 0;
+    char **result = db_get_command_list(NULL,&count);
+    cr_assert_eq(result, NULL);
+}
+
+Test(database, list_commands_in_group) {
+    db_add_group("example_group");
+    db_add_command("example_group","example_command1","ls");
+    db_add_command("example_group","example_command2","ls");
+    db_add_command("example_group","example_command3","ls");
+
+    char *expected[3] = {
+        "example_command1",
+        "example_command2",
+        "example_command3"
+    };
+
+    int count = 0;
+    char **result = db_get_command_list("example_group",&count);
+    cr_assert_eq(count, 3);
+    
+    for (int i = 0; i < count; i++){
+        cr_assert_str_eq(result[i],expected[i]);
+    }
+    
+    free_group_list(result, count);
+}
