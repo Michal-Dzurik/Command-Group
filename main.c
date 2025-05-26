@@ -70,10 +70,13 @@ int main(int argc, char *argv[]) {
                 return list_groups();
             }
             if (strcmp(to_lower(argv[2]), "commands") == 0){
-                if (argc > 3){
-                    // List commands in group
-                    return list_commands_by_group(argv[3]);
+                if (argc <= 3){
+                    error(ERROR_NO_GROUP_PROVIDED);
+                    return FAIL;
                 }
+                
+                // List commands in group
+                return list_commands_by_group(argv[3]);
             }
         }
         // Aliases
@@ -112,6 +115,15 @@ int main(int argc, char *argv[]) {
         if (strcmp(to_lower(argv[1]), "-lg") == 0){
             // List groups
             return list_groups();
+        }
+        if (strcmp(to_lower(argv[1]), "-lc") == 0){
+            if (argc <= 2){
+                error(ERROR_NO_GROUP_PROVIDED);
+                return FAIL;
+            }
+            
+            // List commands in group
+            return list_commands_by_group(argv[2]);
         }
     }
 

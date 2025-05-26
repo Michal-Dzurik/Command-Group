@@ -70,6 +70,18 @@ cg remove command <group-name> <command-name> "<command-to-execute>"
 cg -rc <group-name> <command-name> "<command-to-execute>"
 ```
 
+### Listing Commands in Group
+List commands in group:
+
+```bash
+cg list commands <group-name>
+```
+
+**Alias:**
+```bash
+cg -lc <group-name>
+```
+
 ### Executing a Command
 Run a command from a group:
 
