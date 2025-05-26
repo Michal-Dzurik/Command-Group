@@ -84,3 +84,23 @@ int list_groups(){
 
     return SUCCESS;
 }
+
+int list_commands_by_group(char *group_name){
+    db_init(DATABASE_NAME);
+    int count = 0;
+    char **list = db_get_command_list(group_name,&count);
+    db_close();
+
+     if (list == NULL){
+        error_args(ERROR_NO_COMMANDS_IN_GROUP, group_name);
+        return FAIL;
+    }
+
+    for (int i = 0; i < count; i++){
+        printf(" - %s\n",list[i]);
+    }
+    
+    free_group_list(list,count);
+
+    return SUCCESS;
+}

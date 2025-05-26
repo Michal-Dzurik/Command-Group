@@ -15,6 +15,8 @@ int db_remove_command(const char *group, const char *command_name);
 int db_add_group(const char *group);
 int db_remove_group(const char *group);
 char **db_get_group_list(int *out_count);
+char **db_get_command_list(const char *group_name, int *out_count);
+
 void free_group_list(char **list, int count);
 
 #endif
