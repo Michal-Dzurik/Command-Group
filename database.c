@@ -1,11 +1,13 @@
 #include "includes/database.h"
 #include "includes/io.h"
 #include "includes/errors.h"
+#include "includes/config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sqlite3.h>
+#include <stdbool.h>
 
 static sqlite3 *db = NULL;
 static char *testName = NULL;
@@ -18,7 +20,7 @@ void db_set_test_name(char *name){
 int db_init(const char *filename) {
     if (sqlite3_open(testName == NULL ? filename : testName, &db) != SQLITE_OK) {
         error_args(ERROR_SQL_OPEN, sqlite3_errmsg(db));
-        return 0;
+        return false;
     }
 
     const char *sql =
@@ -39,24 +41,25 @@ int db_init(const char *filename) {
     if (sqlite3_exec(db, sql, 0, 0, &err) != SQLITE_OK) {
         error_args(ERROR_SQL_INIT, err);
         sqlite3_free(err);
-        return 0;
+        return false;
     }
 
-    return 1;
+    return true;
 }
 
 void db_close() {
     if (db) sqlite3_close(db);
+    if (testName) remove(testName);
 }
 
 static int get_or_create_group_id(const char *group_name) {
-    if(group_name == NULL) return 0;
+    if(group_name == NULL) return false;
     sqlite3_stmt *stmt;
     int group_id = 0;
 
     const char *sql_select = "SELECT id FROM groups WHERE group_name = ?;";
     if (sqlite3_prepare_v2(db, sql_select, -1, &stmt, NULL) != SQLITE_OK)
-        return 0;
+        return false;
 
     sqlite3_bind_text(stmt, 1, group_name, -1, SQLITE_STATIC);
     if (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -68,12 +71,12 @@ static int get_or_create_group_id(const char *group_name) {
 
     const char *sql_insert = "INSERT INTO groups (group_name) VALUES (?);";
     if (sqlite3_prepare_v2(db, sql_insert, -1, &stmt, NULL) != SQLITE_OK)
-        return 0;
+        return false;
 
     sqlite3_bind_text(stmt, 1, group_name, -1, SQLITE_STATIC);
     if (sqlite3_step(stmt) != SQLITE_DONE) {
         sqlite3_finalize(stmt);
-        return 0;
+        return false;
     }
     sqlite3_finalize(stmt);
 
@@ -82,22 +85,22 @@ static int get_or_create_group_id(const char *group_name) {
 }
 
 int db_add_group(const char *group) {
-    if (group == NULL) return -1;
+    if (group == NULL) return NULL_CODE;
     
     int id = get_or_create_group_id(group);
     return id != 0;
 }
 
 int db_add_command(const char *group, const char *command_name, const char *command) {
-    if(group == NULL || command_name == NULL || command_name == NULL) return -1;
+    if(group == NULL || command_name == NULL || command_name == NULL) return NULL_CODE;
     int group_id = get_or_create_group_id(group);
-    if (group_id == 0) return -1;
+    if (group_id == 0) return NULL_CODE;
 
     const char *sql = "INSERT INTO commands (group_id, command_name, command) VALUES (?, ?, ?);";
     sqlite3_stmt *stmt;
 
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
-        return 0;
+        return false;
 
     sqlite3_bind_int(stmt, 1, group_id);
     sqlite3_bind_text(stmt, 2, command_name, -1, SQLITE_STATIC);
@@ -136,16 +139,16 @@ char* db_get_command(const char *group, const char *command_name) {
 }
 
 int db_remove_command(const char *group, const char *command_name) {
-    if (group == NULL || command_name == NULL) return -1;
+    if (group == NULL || command_name == NULL) return NULL_CODE;
     
     int group_id = get_or_create_group_id(group);
-    if (group_id == 0) return 0;
+    if (group_id == 0) return false;
 
     const char *sql = "DELETE FROM commands WHERE group_id = ? AND command_name = ?;";
     sqlite3_stmt *stmt;
 
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
-        return 0;
+        return false;
 
     sqlite3_bind_int(stmt, 1, group_id);
     sqlite3_bind_text(stmt, 2, command_name, -1, SQLITE_STATIC);
@@ -157,13 +160,14 @@ int db_remove_command(const char *group, const char *command_name) {
 }
 
 int db_remove_group(const char *group) {
-    if (group == NULL) return -1;
+    if (group == NULL) return NULL_CODE;
     
     const char *sql = "DELETE FROM groups WHERE group_name = ?;";
     sqlite3_stmt *stmt;
 
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
-        return 0;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK){
+        return false;
+    }
 
     sqlite3_bind_text(stmt, 1, group, -1, SQLITE_STATIC);
 
