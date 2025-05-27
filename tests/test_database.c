@@ -1,8 +1,7 @@
 #include "../includes/database.h"
+#include "../includes/config.h"
 
 #include <criterion/criterion.h>
-
-#define DATABASE_NAME "db_test.db"
 
 #define GROUP_NAME "group_name"
 #define GROUP_NAME_1 "example_group1"
@@ -15,22 +14,22 @@
 
 #define LS "ls"
 
-void prepare(){
+void prepare_database(){
     db_init("");
-    db_set_test_name(DATABASE_NAME);
+    db_set_test_name(TEST_DATABASE_NAME);
 }
 
-void destroy(){
+void destroy_database(){
     db_close();
 }
 
-TestSuite(database, .init = prepare, .fini = destroy);
+TestSuite(database, .init = prepare_database, .fini = destroy_database);
 
 // GROUPS
 Test(database, create_group_dry) {
     int result = db_add_group(NULL);
 
-    cr_assert_eq(result,-1);
+    cr_assert_eq(result,NULL_CODE);
 }
 
 Test(database, create_group) {
@@ -42,7 +41,7 @@ Test(database, create_group) {
 Test(database, remove_group_dry) {
     int result = db_remove_group(NULL);
 
-    cr_assert_eq(result,-1);
+    cr_assert_eq(result,NULL_CODE);
 }
 
 Test(database, remove_group) {
@@ -86,7 +85,7 @@ Test(database, list_group) {
 Test(database, create_command_dry) {
     int result = db_add_command(NULL, NULL, NULL);
 
-    cr_assert_eq(result,-1);
+    cr_assert_eq(result,NULL_CODE);
 }
 
 Test(database, create_command) {
@@ -125,7 +124,7 @@ Test(database, get_command) {
 Test(database, remove_command_dry) {
     int result = db_remove_command(NULL, NULL);
 
-    cr_assert_eq(result,-1);
+    cr_assert_eq(result,NULL_CODE);
 }
 
 Test(database, remove_command) {
