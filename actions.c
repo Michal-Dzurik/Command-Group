@@ -112,3 +112,23 @@ int list_commands_by_group(char *group_name){
 
     return SUCCESS;
 }
+
+int rename_group(char* group_name, char* new_group_name){
+    if(group_name == NULL || new_group_name == NULL) return FAIL;
+
+    db_init(DATABASE_NAME);
+    int result = db_rename_group(group_name,new_group_name);
+    db_close();
+    
+    return result ? SUCCESS : FAIL;
+}
+
+int rename_command(char* group_name,char* command_name,char* new_command_name){
+    if(group_name == NULL || command_name == NULL || new_command_name == NULL) return FAIL;
+
+    db_init(DATABASE_NAME);
+    int result = db_rename_command(group_name,command_name,new_command_name);
+    db_close();
+
+    return result ? SUCCESS : FAIL;
+}

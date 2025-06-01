@@ -79,6 +79,29 @@ int main(int argc, char *argv[]) {
                 return list_commands_by_group(argv[3]);
             }
         }
+        if(strcmp(to_lower(argv[1]), "rename") == 0) {
+            if (argc < 3) {
+                printf("- group\n- command\n");
+                return SUCCESS;
+            }
+            if (strcmp(to_lower(argv[2]), "group") == 0){
+                if (argc < RENAME_GROUP_MIN_ARGS){
+                    error(ERROR_RENAME_GROUP_ARGUMENTS);
+                    return FAIL;
+                }
+                // Rename group
+                return rename_group(argv[3],argv[4]);
+            }
+            if (strcmp(to_lower(argv[2]), "command") == 0){
+                if (argc < RENAME_COMMAND_MIN_ARGS){
+                    error(ERROR_RENAME_COMMAND_ARGUMENTS);
+                    return FAIL;
+                }
+                
+                // Rename command in group
+                return rename_command(argv[3],argv[4],argv[5]);
+            }
+        }
         // Aliases
         if (strcmp(to_lower(argv[1]), "-ag") == 0){
             // Add group
@@ -96,7 +119,7 @@ int main(int argc, char *argv[]) {
             }
             return add_command(argv[2],argv[3],argv[4]);
         }
-        if (strcmp(to_lower(argv[1]), "-rg") == 0){
+        if (strcmp(to_lower(argv[1]), "-dg") == 0){
             // Remove group
             if (argc < REMOVE_GROUP_MIN_ARGS -1) {
                 error(ERROR_REMOVE_GROUP_ARGUMENTS);
@@ -104,7 +127,7 @@ int main(int argc, char *argv[]) {
             }
             return remove_group(argv[2]);
         }
-        if (strcmp(to_lower(argv[1]), "-rc") == 0){
+        if (strcmp(to_lower(argv[1]), "-dc") == 0){
             // Remove command
             if (argc < REMOVE_COMMAND_MIN_ARGS -1) {
                 error(ERROR_REMOVE_COMMAND_ARGUMENTS);
@@ -124,6 +147,23 @@ int main(int argc, char *argv[]) {
             
             // List commands in group
             return list_commands_by_group(argv[2]);
+        }
+        if (strcmp(to_lower(argv[1]), "-rc") == 0){
+            if (argc < RENAME_COMMAND_MIN_ARGS -1){
+                error(ERROR_RENAME_COMMAND_ARGUMENTS);
+                return FAIL;
+            }
+            
+            // Rename command in group
+            return rename_command(argv[2],argv[3],argv[4]);
+        }
+        if (strcmp(to_lower(argv[1]), "-rg") == 0){
+            if (argc < RENAME_GROUP_MIN_ARGS -1){
+                error(ERROR_RENAME_GROUP_ARGUMENTS);
+                return FAIL;
+            }
+            // Rename group
+            return rename_group(argv[2],argv[3]);
         }
     }
 

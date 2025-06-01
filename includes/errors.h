@@ -7,6 +7,9 @@ extern const char *ERROR_CREATE_COMMAND_ARGUMENTS;
 extern const char *ERROR_REMOVE_GROUP_ARGUMENTS;
 extern const char *ERROR_REMOVE_COMMAND_ARGUMENTS;
 
+extern const char *ERROR_RENAME_GROUP_ARGUMENTS;
+extern const char *ERROR_RENAME_COMMAND_ARGUMENTS;
+
 extern const char *ERROR_EXECUTE_ARGUMENTS;
 extern const char *ERROR_COMMAND_EXECUTION;
 

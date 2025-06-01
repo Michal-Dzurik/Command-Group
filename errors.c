@@ -6,6 +6,9 @@ const char *ERROR_CREATE_COMMAND_ARGUMENTS = "Not enough arguments for adding co
 const char *ERROR_REMOVE_GROUP_ARGUMENTS = "Not enough arguments for removing group\n";
 const char *ERROR_REMOVE_COMMAND_ARGUMENTS = "Not enough arguments for removing command\n";
 
+const char *ERROR_RENAME_GROUP_ARGUMENTS = "Not enough arguments for renaming group\n";
+const char *ERROR_RENAME_COMMAND_ARGUMENTS = "Not enough arguments for renaming command\n";
+
 const char *ERROR_EXECUTE_ARGUMENTS = "Can't execute that\n";
 
 const char *ERROR_COMMAND_EXECUTION = "Command has failed\n";

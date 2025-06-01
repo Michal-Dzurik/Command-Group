@@ -52,48 +52,61 @@ void db_close() {
     if (testName) remove(testName);
 }
 
-static int get_or_create_group_id(const char *group_name) {
-    if(group_name == NULL) return false;
-    sqlite3_stmt *stmt;
-    int group_id = 0;
+int db_get_group_id(const char *group_name) {
+    if (group_name == NULL) return 0;
 
-    const char *sql_select = "SELECT id FROM groups WHERE group_name = ?;";
-    if (sqlite3_prepare_v2(db, sql_select, -1, &stmt, NULL) != SQLITE_OK)
-        return false;
+    sqlite3_stmt *stmt;
+    const char *sql =
+        "SELECT id FROM groups WHERE group_name = ?;";
+
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
+        return 0;
 
     sqlite3_bind_text(stmt, 1, group_name, -1, SQLITE_STATIC);
+
+    int group_id = 0;
     if (sqlite3_step(stmt) == SQLITE_ROW) {
         group_id = sqlite3_column_int(stmt, 0);
-        sqlite3_finalize(stmt);
-        return group_id;
     }
+
     sqlite3_finalize(stmt);
-
-    const char *sql_insert = "INSERT INTO groups (group_name) VALUES (?);";
-    if (sqlite3_prepare_v2(db, sql_insert, -1, &stmt, NULL) != SQLITE_OK)
-        return false;
-
-    sqlite3_bind_text(stmt, 1, group_name, -1, SQLITE_STATIC);
-    if (sqlite3_step(stmt) != SQLITE_DONE) {
-        sqlite3_finalize(stmt);
-        return false;
-    }
-    sqlite3_finalize(stmt);
-
-    group_id = (int)sqlite3_last_insert_rowid(db);
     return group_id;
 }
+
+int db_create_group(const char *group_name) {
+    if (group_name == NULL) return 0;
+
+    int group_id = db_get_group_id(group_name);
+    if (group_id != 0) return group_id;
+
+    sqlite3_stmt *stmt;
+    const char *sql = "INSERT INTO groups (group_name) VALUES (?);";
+    
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
+        return 0;
+
+    sqlite3_bind_text(stmt, 1, group_name, -1, SQLITE_STATIC);
+
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        sqlite3_finalize(stmt);
+        return 0;
+    }
+
+    sqlite3_finalize(stmt);
+    return (int)sqlite3_last_insert_rowid(db);
+}
+
 
 int db_add_group(const char *group) {
     if (group == NULL) return NULL_CODE;
     
-    int id = get_or_create_group_id(group);
+    int id = db_create_group(group);
     return id != 0;
 }
 
 int db_add_command(const char *group, const char *command_name, const char *command) {
     if(group == NULL || command_name == NULL || command_name == NULL) return NULL_CODE;
-    int group_id = get_or_create_group_id(group);
+    int group_id = db_create_group(group);
     if (group_id == 0) return NULL_CODE;
 
     const char *sql = "INSERT INTO commands (group_id, command_name, command) VALUES (?, ?, ?);";
@@ -114,7 +127,7 @@ int db_add_command(const char *group, const char *command_name, const char *comm
 
 char* db_get_command(const char *group, const char *command_name) {
     if(group == NULL || command_name == NULL) return NULL;
-    int group_id = get_or_create_group_id(group);
+    int group_id = db_create_group(group);
     if (group_id == 0) return NULL;
 
     const char *sql = "SELECT command FROM commands WHERE group_id = ? AND command_name = ? LIMIT 1;";
@@ -141,7 +154,7 @@ char* db_get_command(const char *group, const char *command_name) {
 int db_remove_command(const char *group, const char *command_name) {
     if (group == NULL || command_name == NULL) return NULL_CODE;
     
-    int group_id = get_or_create_group_id(group);
+    int group_id = db_create_group(group);
     if (group_id == 0) return false;
 
     const char *sql = "DELETE FROM commands WHERE group_id = ? AND command_name = ?;";
@@ -176,6 +189,53 @@ int db_remove_group(const char *group) {
 
     return rc == SQLITE_DONE || rc == SQLITE_OK;
 }
+
+int db_rename_command(const char *group, const char *command_name, const char *new_command_name) {
+    if (!group || !command_name || !new_command_name) return NULL_CODE;
+
+    int group_id = db_get_group_id(group);
+    if (group_id == 0) return false;
+
+    const char *sql = 
+        "UPDATE commands "
+        "SET command_name = ? "
+        "WHERE group_id = ? AND command_name = ?;";
+
+    sqlite3_stmt *stmt;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
+        return false;
+
+    sqlite3_bind_text(stmt, 1, new_command_name, -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 2, group_id);
+    sqlite3_bind_text(stmt, 3, command_name, -1, SQLITE_STATIC);
+
+    int rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+
+    return rc == SQLITE_DONE || rc == SQLITE_OK;
+}
+
+int db_rename_group(const char *group, const char *new_group) {
+    if (!group || !new_group) return NULL_CODE;
+
+    const char *sql = 
+        "UPDATE groups "
+        "SET group_name = ? "
+        "WHERE group_name = ?;";
+
+    sqlite3_stmt *stmt;
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
+        return false;
+
+    sqlite3_bind_text(stmt, 1, new_group, -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 2, group, -1, SQLITE_STATIC);
+
+    int rc = sqlite3_step(stmt);
+    sqlite3_finalize(stmt);
+
+    return rc == SQLITE_DONE || rc == SQLITE_OK;
+}
+
 
 char **db_get_group_list(int *out_count) {
     sqlite3_stmt *stmt;
