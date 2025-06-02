@@ -2,7 +2,7 @@
 #include "../includes/actions.h"
 #include "../includes/config.h"
 #include "../includes/errors.h"
-#include "../includes/helpers.h"
+#include "./includes/helpers.h"
 
 #include <criterion/criterion.h>
 #include <criterion/redirect.h>
