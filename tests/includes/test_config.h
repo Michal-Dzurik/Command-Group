@@ -12,6 +12,7 @@
 
 #define LS "ls"
 #define ECHO "echo 'test'"
+#define INVALID_COMMAND "youcantrunthismate"
 
 #define EMPTY_STRING ""
 

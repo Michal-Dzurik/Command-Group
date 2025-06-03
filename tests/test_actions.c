@@ -12,7 +12,7 @@
 
 void prepare_actions(){
     db_set_test_name(TEST_DATABASE_NAME);
-    db_init(EMPTY_STRING);
+    cr_assert(db_init(EMPTY_STRING));
 
     cr_redirect_stderr();
     cr_redirect_stdout();
@@ -132,6 +132,17 @@ Test(actions, list_commands_non_existing_group) {
     assert_stderr_equals(ERROR_NON_EXISTING_GROUP);
 }
 
+Test(actions, list_commands_empty_list) {
+    db_add_group(GROUP_NAME);
+    int result = list_commands_by_group(GROUP_NAME);
+    cr_assert_eq(result, FAIL);
+
+    char msg[strlen(ERROR_NO_COMMANDS_IN_GROUP) + strlen(GROUP_NAME) + 1];
+    sprintf(msg, ERROR_NO_COMMANDS_IN_GROUP, GROUP_NAME);
+
+    assert_stderr_equals(msg);
+}
+
 Test(actions, list_existing_commands_in_group) {
     db_add_command(GROUP_NAME, COMMAND_NAME, LS);
     int result = list_commands_by_group(GROUP_NAME);
@@ -199,6 +210,13 @@ Test(actions, execute_non_existing_command) {
     int result = execute(GROUP_NAME, NON_EXISTING_NAME);
     cr_assert_eq(result, FAIL);
     assert_stderr_equals(ERROR_NON_EXISTING_COMMAND);
+}
+
+Test(actions, execute_invalid_command){
+    db_add_command(GROUP_NAME, COMMAND_NAME, INVALID_COMMAND);
+    int result = execute(GROUP_NAME, COMMAND_NAME);
+    cr_assert_eq(result, FAIL);
+    assert_stderr_equals(ERROR_COMMAND_EXECUTION);
 }
 
 // OTHER

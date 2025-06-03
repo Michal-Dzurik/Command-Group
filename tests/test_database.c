@@ -9,8 +9,8 @@
 #include <criterion/redirect.h>
 
 void prepare_database(){
-    db_init(EMPTY_STRING);
     db_set_test_name(TEST_DATABASE_NAME);
+    cr_assert(db_init(EMPTY_STRING));
 
     cr_redirect_stderr();
     cr_redirect_stdout();
