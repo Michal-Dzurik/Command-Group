@@ -220,3 +220,57 @@ Test(actions, actions_help){
 
     cr_assert_eq(result, SUCCESS);
 }
+
+Test(actions, actions_rename_group_dry){
+    int result = rename_group(NULL, NULL);
+    cr_assert_eq(result, FAIL);
+
+    FILE *original_stderr = switch_stderr_for_temp();
+    result = rename_group(GROUP_NAME, GROUP_NAME_1);
+
+    switch_temp_for_stderr(original_stderr);
+
+    cr_assert_eq(result, FAIL);
+    cr_assert(is_file_empty(TEMP_FILE));
+
+    remove(TEMP_FILE);
+}
+
+Test(actions, actions_rename_group){
+    db_add_group(GROUP_NAME);
+    int result = rename_group(GROUP_NAME, GROUP_NAME_1);
+    cr_assert_eq(result, SUCCESS);
+}
+
+Test(actions, actions_rename_command_dry){
+    int result = rename_command(NULL, NULL, NULL);
+    cr_assert_eq(result, FAIL);
+
+    FILE *original_stderr = switch_stderr_for_temp();
+    result = rename_command(GROUP_NAME, COMMAND_NAME, COMMAND_NAME_1);
+
+    switch_temp_for_stderr(original_stderr);
+
+    cr_assert_eq(result, FAIL);
+    cr_assert(is_file_empty(TEMP_FILE));
+
+    remove(TEMP_FILE);
+
+    db_add_group(GROUP_NAME);
+    result = rename_command(GROUP_NAME, COMMAND_NAME, COMMAND_NAME_1);
+
+    switch_temp_for_stderr(original_stderr);
+
+    cr_assert_eq(result, FAIL);
+    cr_assert(is_file_empty(TEMP_FILE));
+
+    remove(TEMP_FILE);
+    
+}
+
+Test(actions, actions_rename_command){
+    db_add_command(GROUP_NAME,COMMAND_NAME,ECHO);
+    int result = rename_command(GROUP_NAME, COMMAND_NAME, COMMAND_NAME_1);
+
+    cr_assert_eq(result, SUCCESS);
+}

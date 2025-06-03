@@ -73,6 +73,27 @@ int db_get_group_id(const char *group_name) {
     return group_id;
 }
 
+int db_get_command_id(const char *command_name) {
+    if (command_name == NULL) return 0;
+
+    sqlite3_stmt *stmt;
+    const char *sql =
+        "SELECT id FROM commands WHERE command_name = ?;";
+
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
+        return 0;
+
+    sqlite3_bind_text(stmt, 1, command_name, -1, SQLITE_STATIC);
+
+    int command_id = 0;
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        command_id = sqlite3_column_int(stmt, 0);
+    }
+
+    sqlite3_finalize(stmt);
+    return command_id;
+}
+
 int db_create_group(const char *group_name) {
     if (group_name == NULL) return 0;
 
@@ -192,22 +213,28 @@ int db_remove_group(const char *group) {
 
 int db_rename_command(const char *group, const char *command_name, const char *new_command_name) {
     if (!group || !command_name || !new_command_name) return NULL_CODE;
+    if (db_get_group_id(group) == 0) {
+        error(ERROR_NON_EXISTING_GROUP);
+        return false;
+    }
 
-    int group_id = db_get_group_id(group);
-    if (group_id == 0) return false;
+    int command_id = db_get_command_id(command_name);
+    if (command_id == 0) {
+        error(ERROR_NON_EXISTING_GROUP);
+        return false;
+    }
 
     const char *sql = 
         "UPDATE commands "
         "SET command_name = ? "
-        "WHERE group_id = ? AND command_name = ?;";
+        "WHERE id = ?";
 
     sqlite3_stmt *stmt;
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
         return false;
 
     sqlite3_bind_text(stmt, 1, new_command_name, -1, SQLITE_STATIC);
-    sqlite3_bind_int(stmt, 2, group_id);
-    sqlite3_bind_text(stmt, 3, command_name, -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 2, command_id);
 
     int rc = sqlite3_step(stmt);
     sqlite3_finalize(stmt);
@@ -217,18 +244,23 @@ int db_rename_command(const char *group, const char *command_name, const char *n
 
 int db_rename_group(const char *group, const char *new_group) {
     if (!group || !new_group) return NULL_CODE;
+    int group_id = db_get_group_id(group);
+    if (group_id == 0) {
+        error(ERROR_NON_EXISTING_GROUP);
+        return false;
+    }
 
     const char *sql = 
         "UPDATE groups "
         "SET group_name = ? "
-        "WHERE group_name = ?;";
+        "WHERE id = ?;";
 
     sqlite3_stmt *stmt;
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
         return false;
 
     sqlite3_bind_text(stmt, 1, new_group, -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 2, group, -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 2, group_id);
 
     int rc = sqlite3_step(stmt);
     sqlite3_finalize(stmt);

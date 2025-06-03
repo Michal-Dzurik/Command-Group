@@ -1,7 +1,9 @@
 #include "../includes/database.h"
 #include "../includes/config.h"
+#include "./includes/helpers.h"
 
 #include <criterion/criterion.h>
+#include <criterion/redirect.h>
 
 #define GROUP_NAME "group_name"
 #define GROUP_NAME_1 "example_group1"
@@ -17,6 +19,9 @@
 void prepare_database(){
     db_init("");
     db_set_test_name(TEST_DATABASE_NAME);
+
+    cr_redirect_stderr();
+    cr_redirect_stdout();
 }
 
 void destroy_database(){
@@ -187,4 +192,37 @@ Test(database, list_commands_in_group) {
     }
     
     free_group_list(result, count);
+}
+
+Test(database, rename_group_dry){
+    int result = db_rename_group(NULL, NULL);
+    cr_assert_eq(result, NULL_CODE);
+
+    result = db_rename_group(GROUP_NAME, GROUP_NAME_1);
+    cr_assert_eq(result, false);
+}
+
+Test(database, rename_group){
+    db_add_group(GROUP_NAME);
+    int result = db_rename_group(GROUP_NAME, GROUP_NAME_1);
+    cr_assert_eq(result, true);
+}
+
+Test(database, rename_command_dry){
+    int result = db_rename_command(NULL, NULL, NULL);
+    cr_assert_eq(result, NULL_CODE);
+
+    result = db_rename_command(GROUP_NAME, COMMAND_NAME, COMMAND_NAME_1);
+    cr_assert_eq(result, false);
+
+    db_add_group(GROUP_NAME);
+    result = db_rename_command(GROUP_NAME, COMMAND_NAME, COMMAND_NAME_1);
+    cr_assert_eq(result, false);
+}
+
+Test(database, rename_command){
+    db_add_command(GROUP_NAME,COMMAND_NAME,LS);
+    int result = db_rename_command(GROUP_NAME, COMMAND_NAME, COMMAND_NAME_1);
+
+    cr_assert_eq(result, true);
 }

@@ -19,5 +19,7 @@ const char *ERROR_SQL_COMMAND_IS_NULL = "Command is NULL\n";
 
 const char *ERROR_NO_GROUPS = "There are no groups recorded\n";
 const char *ERROR_NO_COMMANDS_IN_GROUP = "There are no commands within group \"%s\"\n";
+const char *ERROR_NON_EXISTING_GROUP = "Group doesn't exists\n";
+const char *ERROR_NON_EXISTING_COMMAND = "Command doesn't exists\n";
 
 const char *ERROR_NO_GROUP_PROVIDED = "No group name was provided\n";
