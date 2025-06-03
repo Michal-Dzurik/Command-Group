@@ -2,28 +2,17 @@
 #include "../includes/actions.h"
 #include "../includes/config.h"
 #include "../includes/errors.h"
+#include "../includes/io.h"
+
 #include "./includes/helpers.h"
+#include "./includes/test_config.h"
 
 #include <criterion/criterion.h>
 #include <criterion/redirect.h>
 
-#define GROUP_NAME "group_name"
-#define GROUP_NAME_1 "example_group1"
-#define GROUP_NAME_2 "example_group2"
-#define NON_EXISTING_NAME "non-existing"
-
-#define COMMAND_NAME "example_command"
-#define COMMAND_NAME_1 "example_command1"
-#define COMMAND_NAME_2 "example_command2"
-
-#define LS "ls"
-#define ECHO "echo 'test'"
-
-#define EMPTY_STRING ""
-
 void prepare_actions(){
     db_set_test_name(TEST_DATABASE_NAME);
-    db_init(EMPTY_STRING);
+    cr_assert(db_init(EMPTY_STRING));
 
     cr_redirect_stderr();
     cr_redirect_stdout();
@@ -35,242 +24,204 @@ void destroy_actions(){
 
 TestSuite(actions, .init = prepare_actions, .fini = destroy_actions);
 
-Test(actions, action_create_group_dry) {
+// GROUPS
+
+Test(actions, create_group_null_name) {
     int result = add_group(NULL);
-
-    cr_assert_eq(result,FAIL);
-}
-
-Test(actions, action_create_group) {
-    int result = add_group(GROUP_NAME);
-
-    cr_assert_eq(result,SUCCESS);
-}
-
-Test(actions, action_remove_group_dry) {
-    int result = remove_group(NULL);
-
-    cr_assert_eq(result,FAIL);
-}
-
-Test(actions, action_remove_group) {
-    db_add_group(GROUP_NAME);
-
-    int result = remove_group(GROUP_NAME);
-    cr_assert_eq(result,SUCCESS);
-
-    result = remove_group(NON_EXISTING_NAME);
-    cr_assert_eq(result,SUCCESS);
-}
-
-Test(actions, actions_list_group_dry) {
-    FILE *original_stderr = switch_stderr_for_temp();
-
-    int result = list_groups();
-
-    switch_temp_for_stderr(original_stderr);
-
     cr_assert_eq(result, FAIL);
-    cr_assert(is_file_empty(TEMP_FILE));
-
-    remove(TEMP_FILE);
 }
 
-Test(actions, actions_list_group) {
+Test(actions, create_group_valid_name) {
+    int result = add_group(GROUP_NAME);
+    cr_assert_eq(result, SUCCESS);
+}
+
+Test(actions, remove_group_null_name) {
+    int result = remove_group(NULL);
+    cr_assert_eq(result, FAIL);
+}
+
+Test(actions, remove_existing_group) {
+    db_add_group(GROUP_NAME);
+    int result = remove_group(GROUP_NAME);
+    cr_assert_eq(result, SUCCESS);
+}
+
+Test(actions, remove_non_existing_group) {
+    int result = remove_group(NON_EXISTING_NAME);
+    cr_assert_eq(result, SUCCESS);
+}
+
+Test(actions, list_groups_empty) {
+    int result = list_groups();
+    cr_assert_eq(result, FAIL);
+    assert_stderr_equals(ERROR_NO_GROUPS);
+}
+
+Test(actions, list_existing_groups) {
     db_add_group(GROUP_NAME);
     db_add_group(GROUP_NAME_1);
-
     int result = list_groups();
     cr_assert_eq(result, SUCCESS);
 }
 
-Test(actions, actions_create_command_dry) {
-    FILE *original_stderr = switch_stderr_for_temp();
-
-    int result = add_command(NULL, NULL, NULL);
-
-    switch_temp_for_stderr(original_stderr);
-
-    cr_assert_eq(result, FAIL);
-    cr_assert(is_file_empty(TEMP_FILE));
-
-    remove(TEMP_FILE);
-}
-
-Test(actions, actions_create_command) {
-    db_add_group(GROUP_NAME);
-
-    int result = add_command(GROUP_NAME,COMMAND_NAME,LS);
-    cr_assert_eq(result,SUCCESS);
-
-    result = add_command(NON_EXISTING_NAME,COMMAND_NAME,LS);
-
-    cr_assert_eq(result,SUCCESS);   
-}
-
-Test(actions, actions_remove_command_dry) {
-    FILE *original_stderr = switch_stderr_for_temp();
-
-    int result = remove_command(NULL, NULL);
-
-    switch_temp_for_stderr(original_stderr);
-
-    cr_assert_eq(result,FAIL);
-    cr_assert(is_file_empty(TEMP_FILE));
-
-    remove(TEMP_FILE);
-}
-
-Test(actions, actions_remove_command) {
-    db_add_group(GROUP_NAME);
-    db_add_command(GROUP_NAME,COMMAND_NAME,LS);
-
-    int result = remove_command(GROUP_NAME,COMMAND_NAME);
-    cr_assert_eq(result,SUCCESS);
-
-    result = remove_command(NON_EXISTING_NAME,COMMAND_NAME);
-    cr_assert_eq(result,SUCCESS);
-
-    result = remove_command(NON_EXISTING_NAME,NON_EXISTING_NAME);
-    cr_assert_eq(result,SUCCESS);
-}
-
-Test(actions, actions_remove_group_and_commands) {
-    db_add_command(GROUP_NAME,COMMAND_NAME,LS);
-    db_add_command(GROUP_NAME,COMMAND_NAME_1,LS);
-    db_add_command(GROUP_NAME,COMMAND_NAME_2,LS);
-
-    int result = remove_group(GROUP_NAME);
-    cr_assert_eq(result,SUCCESS);
-
-    cr_assert_eq(db_get_command(GROUP_NAME,COMMAND_NAME),NULL);
-    cr_assert_eq(db_get_command(GROUP_NAME,COMMAND_NAME_1),NULL);
-    cr_assert_eq(db_get_command(GROUP_NAME,COMMAND_NAME_2),NULL);
-}
-
-Test(actions, actions_list_commands_dry) {
-    FILE *original_stderr = switch_stderr_for_temp();
-
-    int result = list_commands_by_group(NULL);
-
-    switch_temp_for_stderr(original_stderr);
-
-    cr_assert_eq(result, FAIL);
-    cr_assert(is_file_empty(TEMP_FILE));
-
-    remove(TEMP_FILE);
-}
-
-Test(actions, actions_list_commands_command) {
-    db_add_command(GROUP_NAME,COMMAND_NAME,LS);
-
-    int result = list_commands_by_group(GROUP_NAME);
-    cr_assert_eq(result,SUCCESS);
-
-    FILE *original_stderr = switch_stderr_for_temp();
-
-    result = list_commands_by_group(GROUP_NAME_1);
-
-    switch_temp_for_stderr(original_stderr);
-
-    cr_assert_eq(result,FAIL);
-    cr_assert(is_file_empty(TEMP_FILE));
-
-    remove(TEMP_FILE);
-}
-
-Test(actions, actions_execute_dry){
-    FILE *original_stderr = switch_stderr_for_temp();
-    int result = execute(NULL,NULL);
-
-    switch_temp_for_stderr(original_stderr);
-
-    cr_assert_eq(result,FAIL);
-    cr_assert(is_file_empty(TEMP_FILE));
-
-    remove(TEMP_FILE);
-
-
-    original_stderr = switch_stderr_for_temp();
-    result = execute(GROUP_NAME,COMMAND_NAME);
-
-    switch_temp_for_stderr(original_stderr);
-
-    cr_assert_eq(result,FAIL);
-    cr_assert(is_file_empty(TEMP_FILE));
-
-    remove(TEMP_FILE);
-
-
-    db_add_command(GROUP_NAME,COMMAND_NAME,ECHO);
-
-    original_stderr = switch_stderr_for_temp();
-    result = execute(GROUP_NAME,COMMAND_NAME_1);
-
-    switch_temp_for_stderr(original_stderr);
-
-    cr_assert_eq(result,FAIL);
-    cr_assert(is_file_empty(TEMP_FILE));
-
-    remove(TEMP_FILE);
-}
-
-Test(actions, actions_help){
-    int result = help();
-
-    cr_assert_eq(result, SUCCESS);
-}
-
-Test(actions, actions_rename_group_dry){
+Test(actions, rename_group_null_args) {
     int result = rename_group(NULL, NULL);
     cr_assert_eq(result, FAIL);
-
-    FILE *original_stderr = switch_stderr_for_temp();
-    result = rename_group(GROUP_NAME, GROUP_NAME_1);
-
-    switch_temp_for_stderr(original_stderr);
-
-    cr_assert_eq(result, FAIL);
-    cr_assert(is_file_empty(TEMP_FILE));
-
-    remove(TEMP_FILE);
 }
 
-Test(actions, actions_rename_group){
+Test(actions, rename_non_existing_group) {
+    int result = rename_group(GROUP_NAME, GROUP_NAME_1);
+    cr_assert_eq(result, FAIL);
+}
+
+Test(actions, rename_existing_group) {
     db_add_group(GROUP_NAME);
     int result = rename_group(GROUP_NAME, GROUP_NAME_1);
     cr_assert_eq(result, SUCCESS);
 }
 
-Test(actions, actions_rename_command_dry){
-    int result = rename_command(NULL, NULL, NULL);
+// COMMANDS
+
+Test(actions, create_command_null_args) {
+    int result = add_command(NULL, NULL, NULL);
     cr_assert_eq(result, FAIL);
-
-    FILE *original_stderr = switch_stderr_for_temp();
-    result = rename_command(GROUP_NAME, COMMAND_NAME, COMMAND_NAME_1);
-
-    switch_temp_for_stderr(original_stderr);
-
-    cr_assert_eq(result, FAIL);
-    cr_assert(is_file_empty(TEMP_FILE));
-
-    remove(TEMP_FILE);
-
-    db_add_group(GROUP_NAME);
-    result = rename_command(GROUP_NAME, COMMAND_NAME, COMMAND_NAME_1);
-
-    switch_temp_for_stderr(original_stderr);
-
-    cr_assert_eq(result, FAIL);
-    cr_assert(is_file_empty(TEMP_FILE));
-
-    remove(TEMP_FILE);
-    
 }
 
-Test(actions, actions_rename_command){
-    db_add_command(GROUP_NAME,COMMAND_NAME,ECHO);
-    int result = rename_command(GROUP_NAME, COMMAND_NAME, COMMAND_NAME_1);
+Test(actions, create_command_in_non_existing_group) {
+    int result = add_command(NON_EXISTING_NAME, COMMAND_NAME, LS);
+    cr_assert_eq(result, SUCCESS);
+}
 
+Test(actions, create_command_in_existing_group) {
+    db_add_group(GROUP_NAME);
+    int result = add_command(GROUP_NAME, COMMAND_NAME, LS);
+    cr_assert_eq(result, SUCCESS);
+}
+
+Test(actions, remove_command_null_args) {
+    int result = remove_command(NULL, NULL);
+    cr_assert_eq(result, FAIL);
+}
+
+Test(actions, remove_command_from_non_existing_group) {
+    int result = remove_command(NON_EXISTING_NAME, COMMAND_NAME);
+    cr_assert_eq(result, FAIL);
+}
+
+Test(actions, remove_non_existing_command_from_group) {
+    db_add_group(GROUP_NAME);
+    int result = remove_command(GROUP_NAME, NON_EXISTING_NAME);
+    cr_assert_eq(result, FAIL);
+}
+
+Test(actions, remove_existing_command) {
+    db_add_command(GROUP_NAME, COMMAND_NAME, LS);
+    int result = remove_command(GROUP_NAME, COMMAND_NAME);
+    cr_assert_eq(result, SUCCESS);
+}
+
+Test(actions, list_commands_null_group) {
+    int result = list_commands_by_group(NULL);
+    cr_assert_eq(result, FAIL);
+}
+
+Test(actions, list_commands_non_existing_group) {
+    int result = list_commands_by_group(GROUP_NAME);
+    cr_assert_eq(result, FAIL);
+    assert_stderr_equals(ERROR_NON_EXISTING_GROUP);
+}
+
+Test(actions, list_commands_empty_list) {
+    db_add_group(GROUP_NAME);
+    int result = list_commands_by_group(GROUP_NAME);
+    cr_assert_eq(result, FAIL);
+
+    char msg[strlen(ERROR_NO_COMMANDS_IN_GROUP) + strlen(GROUP_NAME) + 1];
+    sprintf(msg, ERROR_NO_COMMANDS_IN_GROUP, GROUP_NAME);
+
+    assert_stderr_equals(msg);
+}
+
+Test(actions, list_existing_commands_in_group) {
+    db_add_command(GROUP_NAME, COMMAND_NAME, LS);
+    int result = list_commands_by_group(GROUP_NAME);
+    cr_assert_eq(result, SUCCESS);
+}
+
+Test(actions, rename_command_null_args) {
+    int result = rename_command(NULL, NULL, NULL);
+    cr_assert_eq(result, FAIL);
+}
+
+Test(actions, rename_command_non_existing_group) {
+    int result = rename_command(NON_EXISTING_NAME, COMMAND_NAME, COMMAND_NAME_1);
+    cr_assert_eq(result, FAIL);
+}
+
+Test(actions, rename_non_existing_command) {
+    db_add_group(GROUP_NAME);
+    int result = rename_command(GROUP_NAME, NON_EXISTING_NAME, COMMAND_NAME_1);
+    cr_assert_eq(result, FAIL);
+}
+
+Test(actions, rename_existing_command) {
+    db_add_command(GROUP_NAME, COMMAND_NAME, ECHO);
+    int result = rename_command(GROUP_NAME, COMMAND_NAME, COMMAND_NAME_1);
+    cr_assert_eq(result, SUCCESS);
+}
+
+// RELATIONS (GROUPS + COMMANDS)
+
+Test(actions, remove_group_removes_its_commands_single) {
+    db_add_command(GROUP_NAME, COMMAND_NAME, LS);
+    int result = remove_group(GROUP_NAME);
+    cr_assert_eq(result, SUCCESS);
+    cr_assert_eq(db_get_command(GROUP_NAME, COMMAND_NAME), NULL);
+}
+
+Test(actions, remove_group_removes_its_commands_multiple) {
+    db_add_command(GROUP_NAME, COMMAND_NAME, LS);
+    db_add_command(GROUP_NAME, COMMAND_NAME_1, LS);
+    db_add_command(GROUP_NAME, COMMAND_NAME_2, LS);
+
+    int result = remove_group(GROUP_NAME);
+    cr_assert_eq(result, SUCCESS);
+    cr_assert_eq(db_get_command(GROUP_NAME, COMMAND_NAME), NULL);
+    cr_assert_eq(db_get_command(GROUP_NAME, COMMAND_NAME_1), NULL);
+    cr_assert_eq(db_get_command(GROUP_NAME, COMMAND_NAME_2), NULL);
+}
+
+// EXECUTION
+
+Test(actions, execute_null_args) {
+    int result = execute(NULL, NULL);
+    cr_assert_eq(result, FAIL);
+}
+
+Test(actions, execute_non_existing_group) {
+    int result = execute(NON_EXISTING_NAME, COMMAND_NAME);
+    cr_assert_eq(result, FAIL);
+    assert_stderr_equals(ERROR_NON_EXISTING_GROUP);
+}
+
+Test(actions, execute_non_existing_command) {
+    db_add_group(GROUP_NAME);
+    int result = execute(GROUP_NAME, NON_EXISTING_NAME);
+    cr_assert_eq(result, FAIL);
+    assert_stderr_equals(ERROR_NON_EXISTING_COMMAND);
+}
+
+Test(actions, execute_invalid_command){
+    db_add_command(GROUP_NAME, COMMAND_NAME, INVALID_COMMAND);
+    int result = execute(GROUP_NAME, COMMAND_NAME);
+    cr_assert_eq(result, FAIL);
+    assert_stderr_equals(ERROR_COMMAND_EXECUTION);
+}
+
+// OTHER
+
+Test(actions, help_command_prints_usage) {
+    int result = help();
     cr_assert_eq(result, SUCCESS);
 }

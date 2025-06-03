@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/wait.h>
 
 int help(){
     system("mdcat README.md");
@@ -53,17 +54,19 @@ int remove_command(char* group_name, char* command_name){
 }
 
 int execute(char* group_name,char* command_name){
+    if (group_name == NULL || command_name == NULL) return FAIL;
     db_init(DATABASE_NAME);
     char *command = db_get_command(group_name, command_name);
     db_close();
 
-    if (command == NULL){
-        error(ERROR_SQL_COMMAND_IS_NULL);
-        return FAIL;
-    }
+    if (command == NULL) return FAIL;
 
-    int ret = system(command);
-    if (ret == NULL_CODE) {
+    // Redirect system's stderr to /dev/null
+    // This is becuse the failed command has it's own error message
+    char cmd_with_redirect[256];
+    snprintf(cmd_with_redirect, sizeof(cmd_with_redirect), "%s 2>/dev/null", command);
+    int ret = system(cmd_with_redirect);
+    if (ret != SUCCESS) {
         error(ERROR_COMMAND_EXECUTION);
         free(command);
         return FAIL;
@@ -94,13 +97,15 @@ int list_groups(){
 }
 
 int list_commands_by_group(char *group_name){
+    if (group_name == NULL) return FAIL;
+    
     db_init(DATABASE_NAME);
     int count = 0;
     char **list = db_get_command_list(group_name,&count);
     db_close();
 
-     if (list == NULL){
-        error_args(ERROR_NO_COMMANDS_IN_GROUP, group_name);
+    if (list == NULL){
+        if (count != -1) error_args(ERROR_NO_COMMANDS_IN_GROUP, group_name);
         return FAIL;
     }
 

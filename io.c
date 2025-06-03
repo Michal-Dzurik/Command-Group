@@ -4,14 +4,14 @@
 #include <stdio.h>
 
 void error(const char *msg) {
-    fprintf(stderr, "\033[31m%s\033[0m", msg);
+    fprintf(stderr, "%s%s%s", RED, msg, RESET);
 }
 
 void error_args(const char *fmt, ...) {
     va_list args;
     va_start(args, fmt);
-    fprintf(stderr, "\033[31m");
+    fprintf(stderr, RED);
     vfprintf(stderr, fmt, args);
-    fprintf(stderr, "\033[0m");
+    fprintf(stderr, RESET);
     va_end(args);
 }
