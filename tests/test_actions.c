@@ -24,197 +24,186 @@ void destroy_actions(){
 
 TestSuite(actions, .init = prepare_actions, .fini = destroy_actions);
 
-Test(actions, action_create_group_dry) {
-    // NULL group_name
+// GROUPS
+
+Test(actions, create_group_null_name) {
     int result = add_group(NULL);
-
-    cr_assert_eq(result,FAIL);
+    cr_assert_eq(result, FAIL);
 }
 
-Test(actions, action_create_group) {
-    // not NULL group_name
+Test(actions, create_group_valid_name) {
     int result = add_group(GROUP_NAME);
-
-    cr_assert_eq(result,SUCCESS);
+    cr_assert_eq(result, SUCCESS);
 }
 
-Test(actions, action_remove_group_dry) {
-    // NULL group_name
+Test(actions, remove_group_null_name) {
     int result = remove_group(NULL);
-
-    cr_assert_eq(result,FAIL);
+    cr_assert_eq(result, FAIL);
 }
 
-Test(actions, action_remove_group) {
+Test(actions, remove_existing_group) {
     db_add_group(GROUP_NAME);
-
-    // not NULL group_name that exists in db
     int result = remove_group(GROUP_NAME);
-    cr_assert_eq(result,SUCCESS);
-
-    // not NULL group_name that doesn't exists in db
-    result = remove_group(NON_EXISTING_NAME);
-    cr_assert_eq(result,SUCCESS);
+    cr_assert_eq(result, SUCCESS);
 }
 
-Test(actions, actions_list_group_dry) {
-    int result = list_groups();
+Test(actions, remove_non_existing_group) {
+    int result = remove_group(NON_EXISTING_NAME);
+    cr_assert_eq(result, SUCCESS);
+}
 
-    // no groups in db
+Test(actions, list_groups_empty) {
+    int result = list_groups();
     cr_assert_eq(result, FAIL);
     assert_stderr_equals(ERROR_NO_GROUPS);
 }
 
-Test(actions, actions_list_group) {
+Test(actions, list_existing_groups) {
     db_add_group(GROUP_NAME);
     db_add_group(GROUP_NAME_1);
-
-    // some groups in db
     int result = list_groups();
     cr_assert_eq(result, SUCCESS);
 }
 
-Test(actions, actions_create_command_dry) {
-    // NULL arguments 
-    int result = add_command(NULL, NULL, NULL);
-
-    cr_assert_eq(result, FAIL);
-}
-
-Test(actions, actions_create_command) {
-    // group doesn't exists in db
-    int result = add_command(NON_EXISTING_NAME,COMMAND_NAME,LS);
-    cr_assert_eq(result,SUCCESS);  
-
-    // group exists in db
-    db_add_group(GROUP_NAME);
-    result = add_command(GROUP_NAME,COMMAND_NAME,LS);
-    cr_assert_eq(result,SUCCESS); 
-}
-
-Test(actions, actions_remove_command_dry) {
-    // NULL arguments
-    int result = remove_command(NULL, NULL);
-    cr_assert_eq(result,FAIL);
-
-    // group doesn't exists in db
-    result = remove_command(NON_EXISTING_NAME,COMMAND_NAME);
-    cr_assert_eq(result,FAIL);
-
-    // group exists in db but command doesn't
-    db_add_group(GROUP_NAME);
-    result = remove_command(GROUP_NAME,NON_EXISTING_NAME);
-    cr_assert_eq(result,FAIL);
-}
-
-Test(actions, actions_remove_command) {
-    db_add_command(GROUP_NAME,COMMAND_NAME,LS);
-
-    // command and group exist in db
-    int result = remove_command(GROUP_NAME,COMMAND_NAME);
-    cr_assert_eq(result,SUCCESS);
-}
-
-
-Test(actions, actions_list_commands_dry) {
-    int result = list_commands_by_group(NULL);
-    cr_assert_eq(result, FAIL);
-
-    result = list_commands_by_group(GROUP_NAME);
-    cr_assert_eq(result, FAIL);
-    assert_stderr_equals(ERROR_NON_EXISTING_GROUP);
-}
-
-Test(actions, actions_remove_group_and_commands) {
-    db_add_command(GROUP_NAME,COMMAND_NAME,LS);
-
-    // Group name exists with one command
-    int result = remove_group(GROUP_NAME);
-    cr_assert_eq(result,SUCCESS);
-    cr_assert_eq(db_get_command(GROUP_NAME,COMMAND_NAME),NULL);
-
-    // Group name exists with many commands
-    db_add_command(GROUP_NAME,COMMAND_NAME,LS);
-    db_add_command(GROUP_NAME,COMMAND_NAME_1,LS);
-    db_add_command(GROUP_NAME,COMMAND_NAME_2,LS);
-
-    result = remove_group(GROUP_NAME);
-
-    cr_assert_eq(result,SUCCESS);
-    cr_assert_eq(db_get_command(GROUP_NAME,COMMAND_NAME),NULL);
-    cr_assert_eq(db_get_command(GROUP_NAME,COMMAND_NAME_1),NULL);
-    cr_assert_eq(db_get_command(GROUP_NAME,COMMAND_NAME_2),NULL);
-}
-
-Test(actions, actions_list_commands) {
-    // commands exists in db
-    db_add_command(GROUP_NAME,COMMAND_NAME,LS);
-
-    int result = list_commands_by_group(GROUP_NAME);
-    cr_assert_eq(result,SUCCESS);
-}
-
-Test(actions, actions_execute_dry){
-    // NULL arguments
-    int result = execute(NULL,NULL);
-    cr_assert_eq(result,FAIL);
-    
-    // group doesn't exists in db
-    result = execute(NON_EXISTING_NAME,COMMAND_NAME);
-    cr_assert_eq(result,FAIL);
-    assert_stderr_equals(ERROR_NON_EXISTING_GROUP);
-}
-
-Test(actions, actions_execute_partial_dry){
-    // group doesn't exists in db
-    db_add_group(GROUP_NAME);
-    int result = execute(GROUP_NAME,NON_EXISTING_NAME);
-    cr_assert_eq(result,FAIL);
-    assert_stderr_equals(ERROR_NON_EXISTING_COMMAND);
-}
-
-Test(actions, actions_help){
-    int result = help();
-
-    cr_assert_eq(result, SUCCESS);
-}
-
-Test(actions, actions_rename_group_dry){
-    // NULL arguments
+Test(actions, rename_group_null_args) {
     int result = rename_group(NULL, NULL);
     cr_assert_eq(result, FAIL);
+}
 
-    // group doesn't exists in db
-    result = rename_group(GROUP_NAME, GROUP_NAME_1);
+Test(actions, rename_non_existing_group) {
+    int result = rename_group(GROUP_NAME, GROUP_NAME_1);
     cr_assert_eq(result, FAIL);
 }
 
-Test(actions, actions_rename_group){
-    // groups exists in db
+Test(actions, rename_existing_group) {
     db_add_group(GROUP_NAME);
     int result = rename_group(GROUP_NAME, GROUP_NAME_1);
     cr_assert_eq(result, SUCCESS);
 }
 
-Test(actions, actions_rename_command_dry){
-    // NULL arguments
-    int result = rename_command(NULL, NULL, NULL);
-    cr_assert_eq(result, FAIL);
+// COMMANDS
 
-    // groups doesn't exists in db
-    result = rename_command(NON_EXISTING_NAME, COMMAND_NAME, COMMAND_NAME_1);
-    cr_assert_eq(result, FAIL);
-
-    // command doesn't exists in db
-    db_add_group(GROUP_NAME);
-    result = rename_command(GROUP_NAME, NON_EXISTING_NAME, COMMAND_NAME_1);
+Test(actions, create_command_null_args) {
+    int result = add_command(NULL, NULL, NULL);
     cr_assert_eq(result, FAIL);
 }
 
-Test(actions, actions_rename_command){
-    // command exists in db
-    db_add_command(GROUP_NAME,COMMAND_NAME,ECHO);
-    int result = rename_command(GROUP_NAME, COMMAND_NAME, COMMAND_NAME_1);
+Test(actions, create_command_in_non_existing_group) {
+    int result = add_command(NON_EXISTING_NAME, COMMAND_NAME, LS);
+    cr_assert_eq(result, SUCCESS);
+}
 
+Test(actions, create_command_in_existing_group) {
+    db_add_group(GROUP_NAME);
+    int result = add_command(GROUP_NAME, COMMAND_NAME, LS);
+    cr_assert_eq(result, SUCCESS);
+}
+
+Test(actions, remove_command_null_args) {
+    int result = remove_command(NULL, NULL);
+    cr_assert_eq(result, FAIL);
+}
+
+Test(actions, remove_command_from_non_existing_group) {
+    int result = remove_command(NON_EXISTING_NAME, COMMAND_NAME);
+    cr_assert_eq(result, FAIL);
+}
+
+Test(actions, remove_non_existing_command_from_group) {
+    db_add_group(GROUP_NAME);
+    int result = remove_command(GROUP_NAME, NON_EXISTING_NAME);
+    cr_assert_eq(result, FAIL);
+}
+
+Test(actions, remove_existing_command) {
+    db_add_command(GROUP_NAME, COMMAND_NAME, LS);
+    int result = remove_command(GROUP_NAME, COMMAND_NAME);
+    cr_assert_eq(result, SUCCESS);
+}
+
+Test(actions, list_commands_null_group) {
+    int result = list_commands_by_group(NULL);
+    cr_assert_eq(result, FAIL);
+}
+
+Test(actions, list_commands_non_existing_group) {
+    int result = list_commands_by_group(GROUP_NAME);
+    cr_assert_eq(result, FAIL);
+    assert_stderr_equals(ERROR_NON_EXISTING_GROUP);
+}
+
+Test(actions, list_existing_commands_in_group) {
+    db_add_command(GROUP_NAME, COMMAND_NAME, LS);
+    int result = list_commands_by_group(GROUP_NAME);
+    cr_assert_eq(result, SUCCESS);
+}
+
+Test(actions, rename_command_null_args) {
+    int result = rename_command(NULL, NULL, NULL);
+    cr_assert_eq(result, FAIL);
+}
+
+Test(actions, rename_command_non_existing_group) {
+    int result = rename_command(NON_EXISTING_NAME, COMMAND_NAME, COMMAND_NAME_1);
+    cr_assert_eq(result, FAIL);
+}
+
+Test(actions, rename_non_existing_command) {
+    db_add_group(GROUP_NAME);
+    int result = rename_command(GROUP_NAME, NON_EXISTING_NAME, COMMAND_NAME_1);
+    cr_assert_eq(result, FAIL);
+}
+
+Test(actions, rename_existing_command) {
+    db_add_command(GROUP_NAME, COMMAND_NAME, ECHO);
+    int result = rename_command(GROUP_NAME, COMMAND_NAME, COMMAND_NAME_1);
+    cr_assert_eq(result, SUCCESS);
+}
+
+// RELATIONS (GROUPS + COMMANDS)
+
+Test(actions, remove_group_removes_its_commands_single) {
+    db_add_command(GROUP_NAME, COMMAND_NAME, LS);
+    int result = remove_group(GROUP_NAME);
+    cr_assert_eq(result, SUCCESS);
+    cr_assert_eq(db_get_command(GROUP_NAME, COMMAND_NAME), NULL);
+}
+
+Test(actions, remove_group_removes_its_commands_multiple) {
+    db_add_command(GROUP_NAME, COMMAND_NAME, LS);
+    db_add_command(GROUP_NAME, COMMAND_NAME_1, LS);
+    db_add_command(GROUP_NAME, COMMAND_NAME_2, LS);
+
+    int result = remove_group(GROUP_NAME);
+    cr_assert_eq(result, SUCCESS);
+    cr_assert_eq(db_get_command(GROUP_NAME, COMMAND_NAME), NULL);
+    cr_assert_eq(db_get_command(GROUP_NAME, COMMAND_NAME_1), NULL);
+    cr_assert_eq(db_get_command(GROUP_NAME, COMMAND_NAME_2), NULL);
+}
+
+// EXECUTION
+
+Test(actions, execute_null_args) {
+    int result = execute(NULL, NULL);
+    cr_assert_eq(result, FAIL);
+}
+
+Test(actions, execute_non_existing_group) {
+    int result = execute(NON_EXISTING_NAME, COMMAND_NAME);
+    cr_assert_eq(result, FAIL);
+    assert_stderr_equals(ERROR_NON_EXISTING_GROUP);
+}
+
+Test(actions, execute_non_existing_command) {
+    db_add_group(GROUP_NAME);
+    int result = execute(GROUP_NAME, NON_EXISTING_NAME);
+    cr_assert_eq(result, FAIL);
+    assert_stderr_equals(ERROR_NON_EXISTING_COMMAND);
+}
+
+// OTHER
+
+Test(actions, help_command_prints_usage) {
+    int result = help();
     cr_assert_eq(result, SUCCESS);
 }
