@@ -24,7 +24,7 @@ cg -ag <group-name>
 List groups with the following syntax:
 
 ```bash
-cg add list groups
+cg list groups
 ```
 
 **Alias:**
@@ -32,7 +32,19 @@ cg add list groups
 cg -lg
 ```
 
-### Removing a Group
+### Renaming Group
+Rename group:
+
+```bash
+cg rename group <group-name> <command-name> <new-command-name>
+```
+
+**Alias:**
+```bash
+cg -rg <group-name> <command-name> <new-command-name>
+```
+
+### Deleting a Group
 Delete an existing command group:
 
 ```bash
@@ -41,7 +53,7 @@ cg remove group <group-name>
 
 **Alias:**
 ```bash
-cg -rg <group-name>
+cg -dg <group-name>
 ```
 
 ## Managing Commands
@@ -58,18 +70,6 @@ cg add command <group-name> <command-name> "<command-to-execute>"
 cg -ac <group-name> <command-name> "<command-to-execute>"
 ```
 
-### Removing a Command
-Remove a command from a group:
-
-```bash
-cg remove command <group-name> <command-name> "<command-to-execute>"
-```
-
-**Alias:**
-```bash
-cg -rc <group-name> <command-name> "<command-to-execute>"
-```
-
 ### Listing Commands in Group
 List commands in group:
 
@@ -80,6 +80,30 @@ cg list commands <group-name>
 **Alias:**
 ```bash
 cg -lc <group-name>
+```
+
+### Renaming Command in Group
+Rename command in group:
+
+```bash
+cg rename command <group-name> <command-name> <new-command-name>
+```
+
+**Alias:**
+```bash
+cg -rc <group-name> <command-name> <new-command-name>
+```
+
+### Deleting a Command
+Remove a command from a group:
+
+```bash
+cg remove command <group-name> <command-name> "<command-to-execute>"
+```
+
+**Alias:**
+```bash
+cg -dc <group-name> <command-name> "<command-to-execute>"
 ```
 
 ### Executing a Command
