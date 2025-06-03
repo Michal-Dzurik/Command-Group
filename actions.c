@@ -58,7 +58,6 @@ int execute(char* group_name,char* command_name){
     db_close();
 
     if (command == NULL){
-        error(ERROR_SQL_COMMAND_IS_NULL);
         return FAIL;
     }
 
@@ -94,13 +93,15 @@ int list_groups(){
 }
 
 int list_commands_by_group(char *group_name){
+    if (group_name == NULL) return FAIL;
+    
     db_init(DATABASE_NAME);
     int count = 0;
     char **list = db_get_command_list(group_name,&count);
     db_close();
 
-     if (list == NULL){
-        error_args(ERROR_NO_COMMANDS_IN_GROUP, group_name);
+    if (list == NULL){
+        if (count != -1) error_args(ERROR_NO_COMMANDS_IN_GROUP, group_name);
         return FAIL;
     }
 

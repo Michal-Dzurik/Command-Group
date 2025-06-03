@@ -128,7 +128,7 @@ int db_add_group(const char *group) {
 int db_add_command(const char *group, const char *command_name, const char *command) {
     if(group == NULL || command_name == NULL || command_name == NULL) return NULL_CODE;
     int group_id = db_create_group(group);
-    if (group_id == 0) return NULL_CODE;
+    if (group_id == 0) return false;
 
     const char *sql = "INSERT INTO commands (group_id, command_name, command) VALUES (?, ?, ?);";
     sqlite3_stmt *stmt;
@@ -147,9 +147,12 @@ int db_add_command(const char *group, const char *command_name, const char *comm
 
 
 char* db_get_command(const char *group, const char *command_name) {
-    if(group == NULL || command_name == NULL) return NULL;
-    int group_id = db_create_group(group);
-    if (group_id == 0) return NULL;
+    if (group == NULL || command_name == NULL) return NULL;
+    int group_id = db_get_group_id(group);
+    if (group_id == 0) {
+        error(ERROR_NON_EXISTING_GROUP);
+        return NULL;
+    }
 
     const char *sql = "SELECT command FROM commands WHERE group_id = ? AND command_name = ? LIMIT 1;";
     sqlite3_stmt *stmt;
@@ -161,6 +164,7 @@ char* db_get_command(const char *group, const char *command_name) {
     sqlite3_bind_text(stmt, 2, command_name, -1, SQLITE_STATIC);
 
     char *result = NULL;
+    
     if (sqlite3_step(stmt) == SQLITE_ROW) {
         const unsigned char *cmd = sqlite3_column_text(stmt, 0);
         if (cmd) {
@@ -169,14 +173,28 @@ char* db_get_command(const char *group, const char *command_name) {
     }
 
     sqlite3_finalize(stmt);
+
+    if (result == NULL) {
+        error(ERROR_NON_EXISTING_COMMAND);
+    }
+
     return result;
 }
 
 int db_remove_command(const char *group, const char *command_name) {
     if (group == NULL || command_name == NULL) return NULL_CODE;
     
-    int group_id = db_create_group(group);
-    if (group_id == 0) return false;
+    int group_id = db_get_group_id(group);
+    if (group_id == 0) {
+        error(ERROR_NON_EXISTING_GROUP);
+        return false;
+    }
+
+    int command_id = db_get_command_id(command_name);
+    if (command_id == 0) {
+        error(ERROR_NON_EXISTING_COMMAND);
+        return false;
+    }
 
     const char *sql = "DELETE FROM commands WHERE group_id = ? AND command_name = ?;";
     sqlite3_stmt *stmt;
@@ -220,7 +238,7 @@ int db_rename_command(const char *group, const char *command_name, const char *n
 
     int command_id = db_get_command_id(command_name);
     if (command_id == 0) {
-        error(ERROR_NON_EXISTING_GROUP);
+        error(ERROR_NON_EXISTING_COMMAND);
         return false;
     }
 
@@ -321,6 +339,12 @@ char **db_get_group_list(int *out_count) {
 
 char **db_get_command_list(const char *group_name, int *out_count) {
     if (group_name == NULL || out_count == NULL) return NULL;
+    int group_id = db_get_group_id(group_name);
+    if (group_id == 0){
+        error(ERROR_NON_EXISTING_GROUP);
+        *out_count = -1;
+        return NULL;
+    }
 
     sqlite3_stmt *stmt;
     int count = 0;

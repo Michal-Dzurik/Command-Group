@@ -1,5 +1,6 @@
 #include "includes/helpers.h"
 #include "../includes/config.h"
+#include "../includes/io.h"
 
 #include <criterion/criterion.h>
 #include <criterion/redirect.h>
@@ -27,6 +28,17 @@ void switch_temp_for_stderr(FILE *original_stderr){
     if (original_stderr == NULL) return;
 
     stderr = original_stderr;
+}
+
+void assert_stderr_equals(const char *expected) {
+    if (expected == NULL) {
+        cr_assert_fail("expected is NULL");
+    }
+
+    char formated[strlen(RED) + strlen(expected) + strlen(RESET) + 1];
+    snprintf(formated, sizeof(formated), "%s%s%s", RED, expected, RESET);
+
+    cr_assert_stderr_eq_str(formated);
 }
 
 int is_file_empty(char *file_name){
