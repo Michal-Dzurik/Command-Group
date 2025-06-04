@@ -6,6 +6,7 @@ PKG_LIBS = -L/opt/homebrew/lib -lcriterion
 EXEC = cg
 TEST_EXEC = test
 CPPCHECK = cppcheck --enable=warning,performance --check-level=exhaustive --error-exitcode=1 --suppress=staticFunction bmp.c transformations.c main.c
+PREFIX ?= /usr/local/bin
 
 # App source files
 SRCS = main.c actions.c helpers.c errors.c database.c io.c
@@ -33,3 +34,15 @@ $(TEST_EXEC): $(TEST_OBJS)
 
 clean:
 	rm -f $(OBJS) $(EXEC) $(TEST_OBJS) $(TEST_EXEC)
+
+install: all
+	mkdir -p $(PREFIX)
+	mkdir -p $(PREFIX)/.cg/
+	sudo chmod 777 $(PREFIX)/.cg/
+	cp cg $(PREFIX)/
+	cp README.md $(PREFIX)/.cg/
+	make clean
+
+uninstall:
+	rm -r $(PREFIX)/cg
+	rm -r $(PREFIX)/.cg/
