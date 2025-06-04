@@ -3,13 +3,25 @@
 #include "includes/errors.h"
 #include "includes/database.h"
 #include "includes/io.h"
+#include "includes/helpers.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/wait.h>
+#include <string.h>
 
 int help(){
-    system("mdcat README.md");
+    if (file_exists(README)) {
+        system("mdcat README.md");
+        return SUCCESS;
+    }
+
+    char *path = get_storage_path(README);
+    char cmd[7 + strlen(path)];
+
+    sprintf(cmd,"mdcat %s", path);
+    system(cmd);
+    
     return SUCCESS;
 }
 

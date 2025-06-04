@@ -2,6 +2,7 @@
 #include "includes/io.h"
 #include "includes/errors.h"
 #include "includes/config.h"
+#include "includes/helpers.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,7 +19,9 @@ void db_set_test_name(char *name){
 }
 
 int db_init(const char *filename) {
-    if (sqlite3_open(testName == NULL ? filename : testName, &db) != SQLITE_OK) {
+    const char *path = testName == NULL ? get_storage_path(filename) : get_storage_path(testName);
+    
+    if (sqlite3_open(path, &db) != SQLITE_OK) {
         error_args(ERROR_SQL_OPEN, sqlite3_errmsg(db));
         return false;
     }
