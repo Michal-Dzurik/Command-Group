@@ -52,7 +52,7 @@ int db_init(const char* filename) {
 
 void db_close() {
     if (db) sqlite3_close(db);
-    if (testName) remove(testName);
+    if (testName) remove(get_storage_path(testName));
 }
 
 int db_get_group_id(const char* group_name) {
