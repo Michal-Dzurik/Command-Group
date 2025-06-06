@@ -23,14 +23,14 @@ TEST_OBJS = $(TEST_SRCS:.c=.o) $(TEST_DEPS:.c=.o)
 GREEN_COLOR := \033[0;32m
 RESET_COLOR := \033[0m
 
-all: $(EXEC)
+all: $(EXEC) man
 	@$(CPPCHECK) > /dev/null 2>&1
 	@printf "$(GREEN_COLOR)Utility cg was compiled successfully$(RESET_COLOR)\n"
 
 $(EXEC): $(OBJS)
 	@$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
 
-tests: $(TEST_EXEC)
+tests: $(TEST_EXEC) man
 	@$(CPPCHECK) > /dev/null 2>&1
 	@printf "$(GREEN_COLOR)Tests for cg were compiled successfully$(RESET_COLOR)\n"
 
@@ -41,7 +41,7 @@ $(TEST_EXEC): $(TEST_OBJS)
 	@$(CC) $(CFLAGS) $(PKG_CFLAGS) -c $< -o $@
 
 clean:
-	@rm -f $(OBJS) $(EXEC) $(TEST_OBJS) $(TEST_EXEC) 
+	@rm -f $(OBJS) $(EXEC) $(TEST_OBJS) $(TEST_EXEC) .cg/cg.1
 	@printf "$(GREEN_COLOR)Cleanup was successful$(RESET_COLOR)\n"
 
 format:
@@ -50,13 +50,15 @@ format:
 
 man:
 	@ronn --roff $(README)
-	@mv README.1 cg.1 
+	@mv README.1 cg.1
+	@cp cg.1 .cg/cg.1 
+	@rm cg.1
 	@printf "$(GREEN_COLOR)Man page created successfully$(RESET_COLOR)\n"
 
 install_man: man
 	@sudo mkdir -p $(MAN_PATH)
-	@sudo cp cg.1 $(MAN_PATH)/
-	@sudo rm cg.1
+	@sudo cp .cg/cg.1 $(MAN_PATH)/
+	@sudo rm .cg/cg.1 
 	@printf "$(GREEN_COLOR)Man page installed successfully$(RESET_COLOR)\n"
 
 install: all install_man
