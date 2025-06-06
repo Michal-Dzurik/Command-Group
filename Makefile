@@ -19,47 +19,57 @@ TEST_SRCS = $(wildcard tests/*.c)
 TEST_DEPS = actions.c helpers.c errors.c database.c io.c
 TEST_OBJS = $(TEST_SRCS:.c=.o) $(TEST_DEPS:.c=.o)
 
+# Colors
+GREEN_COLOR := \033[0;32m
+RESET_COLOR := \033[0m
+
 all: $(EXEC)
-	@$(CPPCHECK)
+	@$(CPPCHECK) > /dev/null 2>&1
+	@printf "$(GREEN_COLOR)Utility cg was compiled successfully$(RESET_COLOR)\n"
 
 $(EXEC): $(OBJS)
-	$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
+	@$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
 
 tests: $(TEST_EXEC)
-	@$(CPPCHECK)
+	@$(CPPCHECK) > /dev/null 2>&1
+	@printf "$(GREEN_COLOR)Tests for cg were compiled successfully$(RESET_COLOR)\n"
 
 $(TEST_EXEC): $(TEST_OBJS)
-	$(CC) $(CFLAGS) $(PKG_CFLAGS) $^ $(PKG_LIBS) $(LDFLAGS) -o $@
+	@$(CC) $(CFLAGS) $(PKG_CFLAGS) $^ $(PKG_LIBS) $(LDFLAGS) -o $@
 
 %.o: %.c
-	$(CC) $(CFLAGS) $(PKG_CFLAGS) -c $< -o $@
+	@$(CC) $(CFLAGS) $(PKG_CFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJS) $(EXEC) $(TEST_OBJS) $(TEST_EXEC)
+	@rm -f $(OBJS) $(EXEC) $(TEST_OBJS) $(TEST_EXEC) 
+	@printf "$(GREEN_COLOR)Cleanup was successful$(RESET_COLOR)\n"
 
 format:
-	find . \( -name "*.c" -o -name "*.h" \) -exec clang-format -i {} +
+	@find . \( -name "*.c" -o -name "*.h" \) -exec clang-format -i {} +
+	@printf "$(GREEN_COLOR)Formatting done$(RESET_COLOR)\n"
 
 man:
-	ronn --roff README.md
-	mv README.1 cg.1
+	@ronn --roff $(README)
+	@mv README.1 cg.1 
+	@printf "$(GREEN_COLOR)Man page created successfully$(RESET_COLOR)\n"
 
 install_man: man
-	mkdir -p $(MAN_PATH)
-	cp cg.1 $(MAN_PATH)/
-	rm cg.1
+	@sudo mkdir -p $(MAN_PATH)
+	@sudo cp cg.1 $(MAN_PATH)/
+	@sudo rm cg.1
+	@printf "$(GREEN_COLOR)Man page installed successfully$(RESET_COLOR)\n"
 
 install: all install_man
-	mkdir -p $(PREFIX)
-	mkdir -p $(PREFIX)/.cg/
-	sudo chmod 777 $(PREFIX)/.cg/
-	cp cg $(PREFIX)/
-	cp README.md $(PREFIX)/.cg/
-	make clean
+	@sudo mkdir -p $(PREFIX) $(PREFIX)/.cg/
+	@sudo chmod 777 $(PREFIX)/.cg/
+	@cp cg $(PREFIX)/ && cp $(README) $(PREFIX)/.cg/
+	@$(MAKE) clean
+	@printf "$(GREEN_COLOR)Utility cg installed successfully$(RESET_COLOR)\n"
 
 uninstall_man:
-	rm $(MAN_PATH)/cg.1
+	@sudo rm -f $(MAN_PATH)/cg.1
+	@printf "$(GREEN_COLOR)Man page uninstalled successfully$(RESET_COLOR)\n"
 
 uninstall: uninstall_man
-	rm -r $(PREFIX)/cg
-	rm -r $(PREFIX)/.cg/
+	@sudo rm -rf $(PREFIX)/cg $(PREFIX)/.cg/
+	@printf "$(GREEN_COLOR)Utility cg uninstalled successfully$(RESET_COLOR)\n"
