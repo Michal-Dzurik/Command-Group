@@ -12,15 +12,11 @@
 
 int help() {
     if (file_exists(README)) {
-        system("mdcat README.md");
+        system("man .cg/cg.1");
         return SUCCESS;
     }
 
-    char* path = get_storage_path(README);
-    char cmd[7 + strlen(path)];
-
-    sprintf(cmd, "mdcat %s", path);
-    system(cmd);
+    system("man cg");
 
     return SUCCESS;
 }
