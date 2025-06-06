@@ -35,6 +35,9 @@ $(TEST_EXEC): $(TEST_OBJS)
 clean:
 	rm -f $(OBJS) $(EXEC) $(TEST_OBJS) $(TEST_EXEC)
 
+format:
+	find . \( -name "*.c" -o -name "*.h" \) -exec clang-format -i {} +
+
 install: all
 	mkdir -p $(PREFIX)
 	mkdir -p $(PREFIX)/.cg/
