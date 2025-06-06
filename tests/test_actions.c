@@ -1,6 +1,6 @@
-#include "../includes/database.h"
 #include "../includes/actions.h"
 #include "../includes/config.h"
+#include "../includes/database.h"
 #include "../includes/errors.h"
 #include "../includes/io.h"
 
@@ -10,7 +10,7 @@
 #include <criterion/criterion.h>
 #include <criterion/redirect.h>
 
-void prepare_actions(){
+void prepare_actions() {
     db_set_test_name(TEST_DATABASE_NAME);
     cr_assert(db_init(EMPTY_STRING));
 
@@ -18,7 +18,7 @@ void prepare_actions(){
     cr_redirect_stdout();
 }
 
-void destroy_actions(){
+void destroy_actions() {
     db_close();
 }
 
@@ -212,7 +212,7 @@ Test(actions, execute_non_existing_command) {
     assert_stderr_equals(ERROR_NON_EXISTING_COMMAND);
 }
 
-Test(actions, execute_invalid_command){
+Test(actions, execute_invalid_command) {
     db_add_command(GROUP_NAME, COMMAND_NAME, INVALID_COMMAND);
     int result = execute(GROUP_NAME, COMMAND_NAME);
     cr_assert_eq(result, FAIL);

@@ -1,5 +1,5 @@
-#include "../includes/database.h"
 #include "../includes/config.h"
+#include "../includes/database.h"
 #include "../includes/errors.h"
 
 #include "./includes/helpers.h"
@@ -8,7 +8,7 @@
 #include <criterion/criterion.h>
 #include <criterion/redirect.h>
 
-void prepare_database(){
+void prepare_database() {
     db_set_test_name(TEST_DATABASE_NAME);
     cr_assert(db_init(EMPTY_STRING));
 
@@ -16,7 +16,7 @@ void prepare_database(){
     cr_redirect_stdout();
 }
 
-void destroy_database(){
+void destroy_database() {
     db_close();
 }
 
@@ -52,7 +52,7 @@ Test(database, remove_non_existing_group) {
 
 Test(database, list_groups_when_empty) {
     int count = 0;
-    char **result = db_get_group_list(&count);
+    char** result = db_get_group_list(&count);
     cr_assert_eq(result, NULL);
 }
 
@@ -60,9 +60,9 @@ Test(database, list_existing_groups) {
     db_add_group(GROUP_NAME);
     db_add_group(GROUP_NAME_1);
 
-    char *expected[2] = { GROUP_NAME, GROUP_NAME_1 };
+    char* expected[2] = {GROUP_NAME, GROUP_NAME_1};
     int count = 0;
-    char **result = db_get_group_list(&count);
+    char** result = db_get_group_list(&count);
     cr_assert_eq(count, 2);
 
     for (int i = 0; i < count; i++) {
@@ -108,25 +108,25 @@ Test(database, create_command_in_non_existing_group) {
 }
 
 Test(database, get_command_with_nulls) {
-    char *result = db_get_command(NULL, NULL);
+    char* result = db_get_command(NULL, NULL);
     cr_assert_eq(result, NULL);
 }
 
 Test(database, get_existing_command) {
     db_add_command(GROUP_NAME, COMMAND_NAME, LS);
-    char *result = db_get_command(GROUP_NAME, COMMAND_NAME);
+    char* result = db_get_command(GROUP_NAME, COMMAND_NAME);
     cr_assert_str_eq(result, LS);
     free(result);
 }
 
 Test(database, get_non_existing_command_in_existing_group) {
-    char *result = db_get_command(GROUP_NAME, COMMAND_NAME_1);
+    char* result = db_get_command(GROUP_NAME, COMMAND_NAME_1);
     cr_assert_eq(result, NULL);
     free(result);
 }
 
 Test(database, get_command_in_non_existing_group) {
-    char *result = db_get_command(GROUP_NAME_1, COMMAND_NAME_1);
+    char* result = db_get_command(GROUP_NAME_1, COMMAND_NAME_1);
     cr_assert_eq(result, NULL);
     free(result);
 }
@@ -157,20 +157,20 @@ Test(database, remove_existing_command) {
 
 Test(database, list_commands_with_null_group) {
     int count = 0;
-    char **result = db_get_command_list(NULL, &count);
+    char** result = db_get_command_list(NULL, &count);
     cr_assert_eq(result, NULL);
 }
 
 Test(database, list_commands_in_empty_group) {
     db_add_group(GROUP_NAME);
     int count = 0;
-    char **result = db_get_command_list(GROUP_NAME, &count);
+    char** result = db_get_command_list(GROUP_NAME, &count);
     cr_assert_eq(result, NULL);
 }
 
 Test(database, list_commands_in_non_existing_group) {
     int count = 0;
-    char **result = db_get_command_list(GROUP_NAME_1, &count);
+    char** result = db_get_command_list(GROUP_NAME_1, &count);
     cr_assert_eq(result, NULL);
     assert_stderr_equals(ERROR_NON_EXISTING_GROUP);
 }
@@ -181,14 +181,13 @@ Test(database, list_existing_commands_in_group) {
     db_add_command(GROUP_NAME, COMMAND_NAME_1, LS);
     db_add_command(GROUP_NAME, COMMAND_NAME_2, LS);
 
-    char *expected[3] = {
+    char* expected[3] = {
         COMMAND_NAME,
         COMMAND_NAME_1,
-        COMMAND_NAME_2
-    };
+        COMMAND_NAME_2};
 
     int count = 0;
-    char **result = db_get_command_list(GROUP_NAME, &count);
+    char** result = db_get_command_list(GROUP_NAME, &count);
     cr_assert_eq(count, 3);
 
     for (int i = 0; i < count; i++) {

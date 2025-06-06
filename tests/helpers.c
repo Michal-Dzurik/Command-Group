@@ -6,12 +6,12 @@
 #include <criterion/redirect.h>
 
 #include <ctype.h>
-#include <string.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 
 FILE* switch_stderr_for_temp() {
-    FILE *file = fopen(TEMP_FILE, "w+");
+    FILE* file = fopen(TEMP_FILE, "w+");
     if (file == NULL) {
         cr_assert_fail("Failed to create temporary file: %s", TEMP_FILE);
         return NULL;
@@ -19,18 +19,18 @@ FILE* switch_stderr_for_temp() {
 
     fclose(file);
 
-    FILE *original_stderr = stderr;
+    FILE* original_stderr = stderr;
     stderr = file;
     return original_stderr;
 }
 
-void switch_temp_for_stderr(FILE *original_stderr){
+void switch_temp_for_stderr(FILE* original_stderr) {
     if (original_stderr == NULL) return;
 
     stderr = original_stderr;
 }
 
-void assert_stderr_equals(const char *expected) {
+void assert_stderr_equals(const char* expected) {
     if (expected == NULL) {
         cr_assert_fail("expected is NULL");
     }
@@ -41,8 +41,8 @@ void assert_stderr_equals(const char *expected) {
     cr_assert_stderr_eq_str(formated);
 }
 
-int is_file_empty(char *file_name){
-    FILE *file = fopen(file_name,"w");
+int is_file_empty(char* file_name) {
+    FILE* file = fopen(file_name, "w");
     if (file == NULL) {
         cr_assert_fail("Failed to read file: %s", file_name);
         return false;
