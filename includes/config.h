@@ -19,7 +19,6 @@
 
 #define DATABASE_NAME "gc.db"
 #define TEST_DATABASE_NAME "gc_test.db"
-#define TEMP_FILE "tmp"
 
 #define README "README.md"
 

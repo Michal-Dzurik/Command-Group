@@ -1,8 +1,6 @@
 #ifndef DATABASE_H
 #define DATABASE_H
 
-#include <sqlite3.h>
-
 void db_set_test_name(char* name);
 
 int db_init(const char* filename);
