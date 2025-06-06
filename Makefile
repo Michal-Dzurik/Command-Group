@@ -7,6 +7,8 @@ EXEC = cg
 TEST_EXEC = test
 CPPCHECK = cppcheck --enable=warning,performance --check-level=exhaustive --error-exitcode=1 --suppress=staticFunction bmp.c transformations.c main.c
 PREFIX ?= /usr/local/bin
+MAN_PATH = /usr/local/share/man/man1
+README = README.md
 
 # App source files
 SRCS = main.c actions.c helpers.c errors.c database.c io.c
@@ -38,7 +40,16 @@ clean:
 format:
 	find . \( -name "*.c" -o -name "*.h" \) -exec clang-format -i {} +
 
-install: all
+man:
+	ronn --roff README.md
+	mv README.1 cg.1
+
+install_man: man
+	mkdir -p $(MAN_PATH)
+	cp cg.1 $(MAN_PATH)/
+	rm cg.1
+
+install: all install_man
 	mkdir -p $(PREFIX)
 	mkdir -p $(PREFIX)/.cg/
 	sudo chmod 777 $(PREFIX)/.cg/
@@ -46,6 +57,9 @@ install: all
 	cp README.md $(PREFIX)/.cg/
 	make clean
 
-uninstall:
+uninstall_man:
+	rm $(MAN_PATH)/cg.1
+
+uninstall: uninstall_man
 	rm -r $(PREFIX)/cg
 	rm -r $(PREFIX)/.cg/
