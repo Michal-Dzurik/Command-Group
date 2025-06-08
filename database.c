@@ -1,3 +1,7 @@
+#ifdef __linux__
+#define _POSIX_C_SOURCE 200809L
+#endif
+
 #include "includes/database.h"
 #include "includes/config.h"
 #include "includes/errors.h"
@@ -9,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 static sqlite3* db = NULL;
 static char* testName = NULL;

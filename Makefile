@@ -23,6 +23,17 @@ TEST_OBJS = $(TEST_SRCS:.c=.o) $(TEST_DEPS:.c=.o)
 GREEN_COLOR := \033[0;32m
 RESET_COLOR := \033[0m
 
+# OS
+OS := $(shell uname -s)
+
+ifeq ($(OS),Linux)
+    OS_NAME := linux
+else ifeq ($(OS),Darwin)
+    OS_NAME := macos
+else
+    OS_NAME := unknown
+endif
+
 all: $(EXEC) man
 	@$(CPPCHECK) > /dev/null 2>&1
 	@printf "$(GREEN_COLOR)Utility cg was compiled successfully$(RESET_COLOR)\n"
@@ -55,25 +66,28 @@ man:
 	@rm cg.1
 	@printf "$(GREEN_COLOR)Man page created successfully$(RESET_COLOR)\n"
 
+install_dependencies:
+	sh "req.$(OS_NAME).sh"
+
 install_man: man
-	@sudo mkdir -p $(MAN_PATH)
-	@sudo cp .cg/cg.1 $(MAN_PATH)/
-	@sudo rm .cg/cg.1 
+	@mkdir -p $(MAN_PATH)
+	@cp .cg/cg.1 $(MAN_PATH)/
+	@rm .cg/cg.1 
 	@printf "$(GREEN_COLOR)Man page installed successfully$(RESET_COLOR)\n"
 
 install: all install_man
-	@sudo mkdir -p $(PREFIX) $(PREFIX)/.cg/
-	@sudo chmod 777 $(PREFIX)/.cg/
+	@mkdir -p $(PREFIX) $(PREFIX)/.cg/
+	@chmod 777 $(PREFIX)/.cg/
 	@cp cg $(PREFIX)/ && cp $(README) $(PREFIX)/.cg/
 	@$(MAKE) clean
 	@printf "$(GREEN_COLOR)Utility cg installed successfully$(RESET_COLOR)\n"
 
 uninstall_man:
-	@sudo rm -f $(MAN_PATH)/cg.1
+	@rm -f $(MAN_PATH)/cg.1
 	@printf "$(GREEN_COLOR)Man page uninstalled successfully$(RESET_COLOR)\n"
 
 uninstall: uninstall_man
-	@sudo rm -rf $(PREFIX)/cg $(PREFIX)/.cg/
+	@rm -rf $(PREFIX)/cg $(PREFIX)/.cg/
 	@printf "$(GREEN_COLOR)Utility cg uninstalled successfully$(RESET_COLOR)\n"
 
 docker_build_image:

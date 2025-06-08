@@ -4,7 +4,6 @@ UseTab: Never
 BreakBeforeBraces: Attach
 AllowShortFunctionsOnASingleLine: true
 AllowShortIfStatementsOnASingleLine: AllIfsAndElse
-AllowShortCaseExpressionOnASingleLine: true
 AllowShortBlocksOnASingleLine: Always
 ColumnLimit: 0
 PointerAlignment: Left

@@ -10,6 +10,7 @@ RUN apt-get update && apt-get upgrade -y && \
     build-essential \
     python3 \
     python3-pip \
+    man-db \
     && apt-get clean
 
 SHELL ["/bin/bash", "-c"]
