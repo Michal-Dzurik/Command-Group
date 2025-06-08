@@ -75,3 +75,10 @@ uninstall_man:
 uninstall: uninstall_man
 	@sudo rm -rf $(PREFIX)/cg $(PREFIX)/.cg/
 	@printf "$(GREEN_COLOR)Utility cg uninstalled successfully$(RESET_COLOR)\n"
+
+docker_build_image:
+	docker build -t cg-ubuntu-image .
+
+docker:
+	docker-compose up -d
+	docker-compose exec app bash

@@ -1,0 +1,7 @@
+services:
+  app:
+    image: cg-ubuntu-image
+    volumes:
+      - .:/home/ubuntu
+    working_dir: /home/ubuntu
+    command: tail -f /dev/null
